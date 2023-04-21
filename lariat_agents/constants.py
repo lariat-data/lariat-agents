@@ -1,0 +1,92 @@
+import os
+from dotenv import load_dotenv
+from lariat_python_common.types.types import CloudTypeModes, SketchTypeModes
+
+load_dotenv()
+
+# Supported Cloud Type Modes
+CLOUD_TYPE_AZURE = CloudTypeModes.AZURE.value
+CLOUD_TYPE_AWS = CloudTypeModes.AWS.value
+CLOUD_TYPE_GCP = CloudTypeModes.GCP.value
+CLOUD_TYPE_NONE = CloudTypeModes.NONE.value
+
+# Supported Sketch Types
+SKETCH_TYPE_DISTINCT = SketchTypeModes.DISTINCT.value
+SKETCH_TYPE_DECILE = SketchTypeModes.DECILE.value
+SKETCH_TYPE_NONE = SketchTypeModes.NONE.value
+
+
+# Agent Data Source Credentials
+SNOWFLAKE_ACCOUNT = os.getenv("SNOWFLAKE_ACCOUNT")
+SNOWFLAKE_USER = os.getenv("SNOWFLAKE_USER")
+SNOWFLAKE_PASSWORD = os.getenv("SNOWFLAKE_PASSWORD")
+SNOWFLAKE_WAREHOUSE = os.getenv("SNOWFLAKE_WAREHOUSE")
+
+# Customer Cloud Variables
+USER_CLOUD_ACCOUNT_ID = os.getenv("LARIAT_CLOUD_ACCOUNT_ID")
+CLOUD_AGENT_CONFIG_PATH = os.getenv("CLOUD_AGENT_CONFIG_PATH")
+AZURE_STORAGE_CONFIG_CONNECTION_STRING = os.getenv(
+    "AZURE_STORAGE_CONFIG_CONNECTION_STRING"
+)
+LARIAT_SINK_AWS_ACCESS_KEY_ID = os.getenv("LARIAT_SINK_AWS_ACCESS_KEY_ID")
+LARIAT_SINK_AWS_SECRET_ACCESS_KEY = os.getenv("LARIAT_SINK_AWS_SECRET_ACCESS_KEY")
+LARIAT_SINK_CREDENTIALS_REGION_NAME = "us-east-2"
+AZURE_STORAGE_CONFIG_CONTAINER = os.getenv("AZURE_STORAGE_CONFIG_CONTAINER")
+LARIAT_OUTPUT_BUCKET = os.getenv("LARIAT_OUTPUT_BUCKET")
+LARIAT_API_KEY = os.getenv("LARIAT_API_KEY")
+LARIAT_APPLICATION_KEY = os.getenv("LARIAT_APPLICATION_KEY")
+CROSS_ACCOUNT_ROLE_BASE_ARN = (
+    "arn:aws:iam::358681817243:role/lariat-iam-terraform-cross-account-access-role"
+)
+
+# Lariat Agent Vars
+LARIAT_BASE_URL = os.getenv("LARIAT_ENDPOINT")
+LARIAT_INDICATOR_URL = f"{LARIAT_BASE_URL}/indicators"
+LARIAT_INDICATOR_STATUS_URL = f"{LARIAT_BASE_URL}/indicator_status"
+INDICATOR_QUERY_OUTPUT_KEY_PREFIX = "sketches"
+LARIAT_SCHEMA_URL = f"{LARIAT_BASE_URL}/information_schema"
+LARIAT_EVENT_NAME = "batch.database_table"
+BACKFILL_LARIAT_INDICATOR_URL = f"{LARIAT_BASE_URL}/backfill_indicators"
+
+ORG_ID = "org_id"
+AGENT_INTER_QUERY_GAP = 1.0  # time to wait before launching another query in seconds
+TAG_FILESYSTEM_PREFIX = "tags"
+
+
+# Indicator Payload Variables
+INDICATOR_PAYLOAD_EVALUATION_TIMES_COL = "evaluation_times"
+INDICATOR_PAYLOAD_COMPUTE_HASH_COL = "compute_hash"
+INDICATOR_PAYLOAD_GROUP_FIELDS_COL = "group_fields"
+INDICATOR_PAYLOAD_LOOKBACK_WINDOW_LENGTH_COL = "lookback_window_length"
+INDICATOR_PAYLOAD_TIMESTAMP_COLUMN_COL = "timestamp_column"
+INDICATOR_PAYLOAD_COMPUTED_DATASET_QUERY_COL = "computed_dataset_query"
+INDICATOR_PAYLOAD_COMPUTED_DATASET_SOURCE_COL = "computed_dataset_source"
+INDICATOR_PAYLOAD_COMPUTED_DATASET_ID_COL = "computed_dataset_id"
+INDICATOR_PAYLOAD_FILTERS_COL = "filters"
+INDICATOR_PAYLOAD_EVALUATION_INTERVAL_COL = "evaluation_interval"
+INDICATOR_PAYLOAD_INDICATOR_ID_COL = "indicator_id"
+INDICATOR_PAYLOAD_CALCULATION_COL = "calculation"
+INDICATOR_PAYLOAD_LAG_COL = "lag"
+
+INDICATOR_PAYLOAD_SKETCH_TYPE = "sketch_type"
+INDICATOR_PAYLOAD_INDICATOR_NAME_COL = "indicator_name"
+INDICATOR_PAYLOAD_INDICATOR_RAW_DATASETS_COL = "raw_dataset_names"
+
+# Result Output Variables
+RESULT_OUTPUT_RESULT_MIN_TS = "_result_min_ts"
+RESULT_OUTPUT_RESULT_MAX_TS = "_result_max_ts"
+RESULT_OUTPUT_LOOKBACK_RANGE_END_TS = "_lookback_range_end_ts"
+RESULT_OUTPUT_LOOKBACK_RANGE_START_TS = "_lookback_range_start_ts"
+RESULT_DF_RESERVED_FIELDS = [
+    RESULT_OUTPUT_RESULT_MIN_TS,
+    RESULT_OUTPUT_RESULT_MAX_TS,
+    RESULT_OUTPUT_LOOKBACK_RANGE_END_TS,
+    RESULT_OUTPUT_LOOKBACK_RANGE_START_TS,
+]
+RESULTS_DF_INDICATOR_COL_PREFIX = "_indicator_"
+
+# Sink Type Descriptors
+LARIAT_SINK_TYPE = "lariat"
+DATADOG_SINK_TYPE = "datadog"
+GRAFANA_SINK_TYPE = "grafana"
+SINK_TYPE = "sink"

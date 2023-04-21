@@ -1,0 +1,4 @@
+sqlparse
+boto3
+sqlalchemy<2
+boto3-type-annotations==0.3.1
