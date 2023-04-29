@@ -14,6 +14,21 @@ Lariat Agents are responsible for:
 Note: The Agent only sinks diagnostic data (timestamp, value) pair, and does not egress 
 raw data or PII data. 
 
+We have currently open-sourced the following agents: 
+
+- Snowflake
+- Athena 
+
+Below are some of the agents we are in the process of open sourcing:
+- Postgres
+- Kafka 
+- Parquet files 
+- Pandas 
+- Flask 
+- Big Query 
+
+Please direct any questions about supported agents to info@lariatdata.com 
+or via a GitHub issue. 
 
 ## Repository Structure 
 
