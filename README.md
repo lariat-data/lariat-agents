@@ -19,7 +19,7 @@ We have currently open-sourced the following agents:
 - Snowflake
 - Athena 
 
-Below are some of the agents we are in the process of open sourcing:
+Below are some agents we are in the process of open sourcing:
 - Postgres
 - Kafka 
 - Parquet files 

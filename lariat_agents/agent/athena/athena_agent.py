@@ -4,7 +4,7 @@ from lariat_agents.constants import (
     BACKFILL_LARIAT_INDICATOR_URL,
     LARIAT_SCHEMA_URL,
 )
-from athena_query_builder import AthenaQueryBuilder
+from lariat_agents.agent.athena.athena_query_builder import AthenaQueryBuilder
 import os
 from boto3_type_annotations import athena, s3
 from typing import Dict

@@ -54,14 +54,14 @@ class AthenaQueryBuilder(BaseQueryBuilder):
             output_bucket=self.athena_query_bucket_name,
             output_path="",
         )
-        resource = self.s3_handler
-        file_obj = (
-            resource.Bucket(self.athena_query_bucket_name)
-            .Object(key=query_execution_key)
-            .get()
+        s3_client = self.s3_handler
+        s3_response = s3_client.get_object(
+            Bucket=self.athena_query_bucket_name, Key=query_execution_key
         )
 
-        overall_df = pd.read_csv(io.BytesIO(file_obj["Body"].read()), encoding="utf8")
+        overall_df = pd.read_csv(
+            io.BytesIO(s3_response["Body"].read()), encoding="utf8"
+        )
         df = overall_df.drop("extra_info", axis=1)
         for table_name, group in df.groupby("table_name"):
             try:
