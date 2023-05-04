@@ -394,23 +394,27 @@ class BaseAgent(ABC):
         :param updated_tags: Additional tags to include based on metadata received from query runs
         :return: No return value
         """
-        result_df.columns = [
-            col.lower()
-            if (
-                col in RESULT_DF_RESERVED_FIELDS
-                or col.startswith(RESULTS_DF_INDICATOR_COL_PREFIX)
+        if result_df is not None:
+            result_df.columns = [
+                col.lower()
+                if (
+                    col in RESULT_DF_RESERVED_FIELDS
+                    or col.startswith(RESULTS_DF_INDICATOR_COL_PREFIX)
+                )
+                else col
+                for col in result_df.columns
+            ]
+            indicator_ids = [
+                int(col.removeprefix(RESULTS_DF_INDICATOR_COL_PREFIX))
+                for col in result_df.columns
+                if col.startswith(RESULTS_DF_INDICATOR_COL_PREFIX)
+            ]
+            tags_dict = self.create_tags_post_query_completion(
+                indicator_id_list=indicator_ids, updated_tags=updated_tags
             )
-            else col
-            for col in result_df.columns
-        ]
-        indicator_ids = [
-            int(col.removeprefix(RESULTS_DF_INDICATOR_COL_PREFIX))
-            for col in result_df.columns
-            if col.startswith(RESULTS_DF_INDICATOR_COL_PREFIX)
-        ]
-        tags_dict = self.create_tags_post_query_completion(
-            indicator_id_list=indicator_ids, updated_tags=updated_tags
-        )
+        else:
+            tags_dict = updated_tags
+
         self.sink.write(
             result_df=result_df,
             source_top_level=source_top_level,

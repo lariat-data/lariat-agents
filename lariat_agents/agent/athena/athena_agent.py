@@ -112,10 +112,22 @@ class AthenaAgent(BaseAgent):
         )
 
     def map_action_to_function(self, action, event_dict=None):
+        """
+        Supported actions:
+        - backfill_batch_agent_query_dispatch: Dispatch async queries for the next set of indicators marked for backfill
+        - batch_agent_query_dispatch: Dispatch async queries for next current set of indicators to run
+        - batch_agent_copy: Copy Data from async query execution
+        - raw_schema: request the raw_schema based on the tables and schemas specified in the config yaml
+        :param action: One of the supported actions for the agent to run
+        :param event_dict: Any additional event specific data (e.g. data about async executions)
+        :return:
+        """
         if not event_dict:
             event_dict = {}
         if action is None:
-            action = BATCH_AGENT_QUERY_DISPATCH_MODE
+            raise ValueError(
+                "Unspecified action. Please consult the docs to pass in the correct action to the agent"
+            )
         if action == BACKFILL_BATCH_AGENT_QUERY_DISPATCH_MODE:
             backfill_indicators = self.get_lariat_indicator_json(
                 BACKFILL_LARIAT_INDICATOR_URL
@@ -130,3 +142,5 @@ class AthenaAgent(BaseAgent):
             self.setup_and_execute_write(event_dict)
         elif action == SCHEMA_RETRIEVAL_MODE:
             self.schema_retrieval()
+        else:
+            raise ValueError(f"Invalid Action Specified {action}")

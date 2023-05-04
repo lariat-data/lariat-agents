@@ -59,8 +59,19 @@ class SnowflakeAgent(BaseAgent):
         )
 
     def map_action_to_function(self, action, event_dict=None):
+        """
+        Supported actions:
+        - backfill_batch_agent_query_dispatch: request indicators for a backfill and run them
+        - batch_agent_query_dispatch: request the next current indicators and run them
+        - raw_schema: request the raw_schema based on the tables and schemas specified in the config yaml
+        :param action: One of the supported actions for the agent to run
+        :param event_dict: Any additional event specific data
+        :return:
+        """
         if action is None:
-            action = BATCH_AGENT_QUERY_DISPATCH_MODE
+            raise ValueError(
+                "Unspecified action. Please consult the docs to pass in the correct action to the agent"
+            )
         if action == BACKFILL_BATCH_AGENT_QUERY_DISPATCH_MODE:
             backfill_indicators = self.get_lariat_indicator_json(
                 BACKFILL_LARIAT_INDICATOR_URL
@@ -77,3 +88,5 @@ class SnowflakeAgent(BaseAgent):
             )
         elif action == SCHEMA_RETRIEVAL_MODE:
             self.schema_retrieval()
+        else:
+            raise ValueError(f"Invalid Action Specified {action}")
