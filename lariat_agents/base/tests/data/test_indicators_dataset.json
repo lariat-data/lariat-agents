@@ -1,0 +1,1652 @@
+[
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 4,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(altitude)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "Altitude Fill Rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 172800,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 21,
+        "evaluation_interval": "0 0 * * *",
+        "calculation": "100.0 * COUNT(\n\t\tCASE\n\t\t\tWHEN (\n\t\t\t\tABS(\n\t\t\t\t\treceivedtime - eventtime\n\t\t\t\t) < 86400\n\t\t\t) THEN 1\n\t\tEND\n\t) / count(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686873600000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "24 Hour Freshness",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 15,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(gdprconsentflag)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "gdprconsentflag Fill Rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 10,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(countrycode)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "Country Code Fill Rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 11,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(ipAddressv4)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "IP Address V4 Fill Rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 13,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(devicecarrier)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "Device Carrier Fill Rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 8,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(eventdate)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "EventDate Fill Rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 2,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(distinct partnerid)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "Device ID Fill Rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 6,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(location)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "Location Fill Rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 9,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(devicetype)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "Device Type Fill Rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "countrycode, partnerid",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 18,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "# of Hourly Records per Feed/Country",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 3,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(speed)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "Speed Fill Rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 14,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(eventtimemilli)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "Eventtimemilli Fill Rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 172800,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 20,
+        "evaluation_interval": "0 0 * * *",
+        "calculation": "100.0 * COUNT(\n\t\tCASE\n\t\t\tWHEN (\n\t\t\t\tABS(\n\t\t\t\t\treceivedtime - eventtime\n\t\t\t\t) < 172800\n\t\t\t) THEN 1\n\t\tEND\n\t) / count(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686873600000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "48 Hour Freshness",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "partnerid",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 1,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(distinct deviceid)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "# of Hourly Distinct Devices Per Feed",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "countrycode, partnerid",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 19,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(distinct deviceid)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "# of Hourly Distinct Devices Per Feed/Country",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 16,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(verticalaccuracy)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "Verticle accuracy Fill Rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 17,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(horizontalaccuracy)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "Horizontal accuray fill rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 172800,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 22,
+        "evaluation_interval": "0 0 * * *",
+        "calculation": "100.0 * COUNT(\n\t\tCASE\n\t\t\tWHEN (\n\t\t\t\tABS(\n\t\t\t\t\treceivedtime - eventtime\n\t\t\t\t) < 21600\n\t\t\t) THEN 1\n\t\tEND\n\t) / count(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686873600000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "6 Hour Freshness",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "partnerid",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 23,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "# of Hourly Records per Feed\n",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 12,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(ipAddressv6)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "IP Address V6 Fill Rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 5,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(bearing)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "Bearing Fill rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 24,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(horizontalaccuracy)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT horizontalaccuracy",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 29,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(partnerid)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT partnerid",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 26,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "AVG(horizontalaccuracy)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "AVG horizontalaccuracy",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 28,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "MAX(horizontalaccuracy)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "MAX horizontalaccuracy",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 27,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "MIN(horizontalaccuracy)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "MIN horizontalaccuracy",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 30,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(DISTINCT(partnerid))",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT_DISTINCT partnerid",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 25,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "SUM(horizontalaccuracy)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "SUM horizontalaccuracy",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 42,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "MIN(verticalaccuracy)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "MIN verticalaccuracy",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 33,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "AVG(altitude)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "AVG altitude",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 47,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "MIN(speed)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "MIN speed",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 34,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "MIN(altitude)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "MIN altitude",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 46,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "AVG(speed)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "AVG speed",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 51,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(countrycode)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT countrycode",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 41,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "AVG(verticalaccuracy)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "AVG verticalaccuracy",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 31,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(altitude)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT altitude",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 44,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(speed)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT speed",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 53,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(ipAddressv4)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT ipAddressv4",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 40,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "SUM(verticalaccuracy)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "SUM verticalaccuracy",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 36,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(gdprconsentflag)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT gdprconsentflag",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 43,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "MAX(verticalaccuracy)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "MAX verticalaccuracy",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 52,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(DISTINCT(countrycode))",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT_DISTINCT countrycode",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 45,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "SUM(speed)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "SUM speed",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 50,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(DISTINCT(receivedhour))",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT_DISTINCT receivedhour",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 48,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "MAX(speed)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "MAX speed",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 35,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "MAX(altitude)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "MAX altitude",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 49,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(receivedhour)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT receivedhour",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "gdprconsentflag = true",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 37,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(gdprconsentflag)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT_TRUE gdprconsentflag",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "gdprconsentflag = false",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 38,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(gdprconsentflag)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT_FALSE gdprconsentflag",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 39,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(verticalaccuracy)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "Default COUNT",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 32,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "SUM(altitude)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "SUM altitude",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 54,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(DISTINCT(ipAddressv4))",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT_DISTINCT ipAddressv4",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 58,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(DISTINCT(devicecarrier))",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT_DISTINCT devicecarrier",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 61,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "AVG(bearing)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "AVG bearing",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 64,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(deviceid)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT deviceid",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 56,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(DISTINCT(ipAddressv6))",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT_DISTINCT ipAddressv6",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 65,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(DISTINCT(deviceid))",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT_DISTINCT deviceid",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 62,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "MIN(bearing)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "MIN bearing",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 57,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(devicecarrier)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT devicecarrier",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 55,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(ipAddressv6)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT ipAddressv6",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 59,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(bearing)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT bearing",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 60,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "SUM(bearing)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "SUM bearing",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 63,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "MAX(bearing)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "MAX bearing",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "partnerid",
+        "filters": "",
+        "lookback_window_length": 3600,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 66,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "COUNT(distinct speed)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "COUNT distinct speed",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    },
+    {
+        "org_id": 1,
+        "computed_dataset_id": 1,
+        "computed_dataset_source": "athena",
+        "computed_dataset_name": "live_feeds",
+        "group_fields": "",
+        "filters": "",
+        "lookback_window_length": 86400,
+        "timestamp_column": "receivedtime",
+        "computed_dataset_query": "Select *,\n\tCAST(\n\t\tto_unixtime(\n\t\t\tdate_add(\n\t\t\t\t'hour',\n\t\t\t\tCAST(receivedhour as integer),\n\t\t\t\tCAST(receiveddate as timestamp)\n\t\t\t)\n\t\t) AS BIGINT\n\t) as receivedtime,\n\teventtimemilli / 1000 as eventtime\nfrom irys.v2",
+        "indicator_id": 7,
+        "evaluation_interval": "0 * * * *",
+        "calculation": "100.0 * COUNT(metadata)/COUNT(*)",
+        "is_aggregatable": null,
+        "evaluation_times": [
+            "1686916800000"
+        ],
+        "lag": 0,
+        "fields": null,
+        "indicator_name": "Metadata Fill Rate",
+        "raw_dataset_names": [
+            "v2"
+        ],
+        "meta": null
+    }
+]
