@@ -53,7 +53,7 @@ def test_execute_indicators(aws_credentials, indicators, expect):
         agent_type="athena", cloud="aws", athena_handler=athena, s3_handler=s3
     )
     response = agent.execute_indicators(indicators=indicators, expect_results=True)
-    assert response is expect
+    assert response == expect
 
 
 @pytest.mark.parametrize(
