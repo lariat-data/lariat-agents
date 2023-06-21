@@ -316,6 +316,7 @@ class BaseAgent(ABC):
             ],
             dropna=False,
         )
+        compute_hashes= []
         for (compute_hash, evaluation_time, org_id), df_group in grouped_df:
             calculation_indicator_id_pairs = list(
                 zip(
@@ -374,6 +375,8 @@ class BaseAgent(ABC):
                     source_file_path=source_file_path,
                 )
             time.sleep(AGENT_INTER_QUERY_GAP)
+            compute_hashes.append(compute_hash)
+        return compute_hashes
 
     def write_data(
         self,

@@ -15,7 +15,16 @@ tests = {
         },
         "simple_case_0": {
             "indicators": pd.read_json(INDICATORS_DATASET_PATH),
-            "expect": None,
+            "expect": [
+                "1_29a086cdf9306bf1b2536fe7c9ba24fe37706d7c__86400_9cf7c8460aebd2a925bd4e4d9591760c26414fe9",
+                "1_56daf1379b637b280f59b2d6f6af57200473f766__3600_9cf7c8460aebd2a925bd4e4d9591760c26414fe9",
+                "1_56daf1379b637b280f59b2d6f6af57200473f766__86400_9cf7c8460aebd2a925bd4e4d9591760c26414fe9",
+                "1__418b03f8dda432c1213c9b0568c4980be0200bd5_3600_9cf7c8460aebd2a925bd4e4d9591760c26414fe9",
+                "1___172800_178ddfbecf63fb837393fbbee638ca622dd389c3",
+                "1___3600_9cf7c8460aebd2a925bd4e4d9591760c26414fe9",
+                "1___86400_9cf7c8460aebd2a925bd4e4d9591760c26414fe9",
+                "1__c95b1c4bf964d05bbe7d517f4814f9abe2f9b259_3600_9cf7c8460aebd2a925bd4e4d9591760c26414fe9",
+            ],
             TEST_COMPLEXITY_KEY: TestComplexity.SIMPLE.name,
         },
     },
