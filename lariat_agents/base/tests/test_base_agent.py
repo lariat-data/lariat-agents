@@ -42,7 +42,9 @@ def test_execute_indicators(aws_credentials, indicators, expect):
     athena = boto3.client("athena", region_name="us-east-1")
     s3 = boto3.client("s3", region_name="us-east-1")
     test_bucket_name = CLOUD_AGENT_CONFIG_PATH.split("/")[0]
-    test_cloud_config_path = CLOUD_AGENT_CONFIG_PATH[CLOUD_AGENT_CONFIG_PATH.index("/")+1:]
+    test_cloud_config_path = CLOUD_AGENT_CONFIG_PATH[
+        CLOUD_AGENT_CONFIG_PATH.index("/") + 1 :
+    ]
     s3.create_bucket(Bucket=test_bucket_name)
     s3.put_object(
         Bucket=test_bucket_name,
