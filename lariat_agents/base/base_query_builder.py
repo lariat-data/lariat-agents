@@ -77,8 +77,8 @@ class BaseQueryBuilder(ABC):
     def build(
         self,
         computed_dataset_query: str,
-        calculation_indicator_id_pairs: List[Tuple[str, int]],
-        group_fields: str,
+        calculation_indicator_id_pairs: List[Tuple[str, str]],
+        group_fields: List[str],
         timestamp_field: str,
         evaluation_time: int,
         lookback_time: int,
@@ -121,6 +121,8 @@ class BaseQueryBuilder(ABC):
         :return: string representation of selection based on field description:
         Example 1: INPUT: {"col1": "alias"} OUTPUT: "col1 as alias"
         Example 2: INPUT: "col2" OUTPUT: "col2 as col2"
+        If a dot exists in the column name, it replaces the dot with an underscore in the alias
+        Example: col_qualifier.col2 as col_qualifier_col2
         """
         if type(field_description) is dict:
             if len(field_description) > 1:
@@ -129,10 +131,11 @@ class BaseQueryBuilder(ABC):
                 for key, val in field_description.items():
                     key = key.strip()
                     val = val.strip()
+                    val = val.replace(".", "_")
                     return f"{key} as {val}"
         elif type(field_description) is str:
             field_description = field_description.strip()
-            return f"{field_description} as {field_description}"
+            return f"{field_description} as {field_description.replace('.', '_')}"
 
     @staticmethod
     def add_timestamp_fields(

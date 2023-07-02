@@ -72,6 +72,7 @@ class LariatSink(BaseSink):
                         aws_session_token=session_token,
                     )
                     s3_resource = session.resource("s3")
+
                     bucket = s3_resource.Bucket(LARIAT_OUTPUT_BUCKET)
                     bucket.copy(athena_source_location, file_path)
             elif result_df is not None:
@@ -101,4 +102,5 @@ class LariatSink(BaseSink):
                     )
 
         except Exception as e:
+            # TODO: This exception needs to be surfaced back as an indicator status
             logging.error(f"Failed to write data via Lariat sink. {e}")

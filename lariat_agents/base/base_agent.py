@@ -316,7 +316,7 @@ class BaseAgent(ABC):
             ],
             dropna=False,
         )
-        compute_hashes= []
+        compute_hashes = []
         for (compute_hash, evaluation_time, org_id), df_group in grouped_df:
             calculation_indicator_id_pairs = list(
                 zip(
@@ -418,6 +418,7 @@ class BaseAgent(ABC):
         else:
             tags_dict = updated_tags
 
+        # TODO: Track failure of write, and add to indicator statuses
         self.sink.write(
             result_df=result_df,
             source_top_level=source_top_level,

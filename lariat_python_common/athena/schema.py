@@ -344,7 +344,7 @@ def get_columns(
         sql = get_columns(None, jsonschema.get(ITEMS_FIELD, in_struct))
         # for nested fields we normalize the sql by removing newlines
         sql = " ".join(sql.split())
-        return "`{field}`{struct_delim} array({inner_columns})".format(
+        return "`{field}`{struct_delim} array<{inner_columns}>".format(
             field=field, inner_columns=sql, struct_delim=struct_delim
         )
 
