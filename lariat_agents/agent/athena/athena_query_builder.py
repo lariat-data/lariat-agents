@@ -11,7 +11,7 @@ from lariat_python_common.athena.custom_exceptions import (
 )
 from lariat_agents.constants import LARIAT_EVENT_NAME
 
-from typing import List
+from typing import List, Tuple
 from lariat_python_common.athena import schema as lariat_schema_utils
 import pandas as pd
 import io
@@ -156,8 +156,8 @@ class AthenaQueryBuilder(BaseQueryBuilder):
     def build(
         self,
         computed_dataset_query: str,
-        calculation_indicator_id_pairs: str,
-        group_fields: str,
+        calculation_indicator_id_pairs: List[Tuple[str, str]],
+        group_fields: List[str],
         timestamp_field: str,
         evaluation_time: int,
         lookback_time: int,
@@ -219,6 +219,11 @@ class AthenaQueryBuilder(BaseQueryBuilder):
                 workgroup=self.workgroup_name,
             )
         except AthenaQueryRunException as query_exception:
+            logging.error(f"Query Exception: {query_exception}")
+            logging.error(f"Query That Failed: {query}")
+            import traceback
+
+            logging.error(traceback.format_exc())
             if (query_exception.query_execution_id is not None) and (
                 query_exception.exception_type == REPORT_EXCEPTION
             ):
@@ -230,4 +235,7 @@ class AthenaQueryBuilder(BaseQueryBuilder):
                 indicator_statuses = self.construct_indicator_statuses_from_meta(
                     query=query, meta_dict=meta
                 )
+        except Exception as e:
+            logging.error(f"General Exception: {e}")
+
         return None, indicator_statuses
