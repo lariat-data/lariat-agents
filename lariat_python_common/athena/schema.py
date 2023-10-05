@@ -241,6 +241,8 @@ def transform_athena_to_json_schema(
             """
             if column["data_type"].startswith("varchar"):
                 column["data_type"] = "varchar"
+            elif column["data_type"].startswith("timestamp("):
+                column["data_type"] = "timestamp"
             output_record = {"type": SQL_TYPE_TO_JSON_TYPE[column["data_type"]][0]}
             if not SQL_TYPE_TO_JSON_TYPE[column["data_type"]][1] is None:
                 output_record["format"] = SQL_TYPE_TO_JSON_TYPE[column["data_type"]][1]
@@ -344,7 +346,7 @@ def get_columns(
         sql = get_columns(None, jsonschema.get(ITEMS_FIELD, in_struct))
         # for nested fields we normalize the sql by removing newlines
         sql = " ".join(sql.split())
-        return "`{field}`{struct_delim} array({inner_columns})".format(
+        return "`{field}`{struct_delim} array<{inner_columns}>".format(
             field=field, inner_columns=sql, struct_delim=struct_delim
         )
 

@@ -77,8 +77,8 @@ class BaseQueryBuilder(ABC):
     def build(
         self,
         computed_dataset_query: str,
-        calculation_indicator_id_pairs: List[Tuple[str, int]],
-        group_fields: str,
+        calculation_indicator_id_pairs: List[Tuple[str, str]],
+        group_fields: List[str],
         timestamp_field: str,
         evaluation_time: int,
         lookback_time: int,
@@ -129,10 +129,10 @@ class BaseQueryBuilder(ABC):
                 for key, val in field_description.items():
                     key = key.strip()
                     val = val.strip()
-                    return f"{key} as {val}"
+                    return f"{key} as \"{val}\""
         elif type(field_description) is str:
             field_description = field_description.strip()
-            return f"{field_description} as {field_description}"
+            return f'{field_description} as "{field_description}"'
 
     @staticmethod
     def add_timestamp_fields(

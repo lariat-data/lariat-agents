@@ -316,7 +316,7 @@ class BaseAgent(ABC):
             ],
             dropna=False,
         )
-        compute_hashes= []
+        compute_hashes = []
         for (compute_hash, evaluation_time, org_id), df_group in grouped_df:
             calculation_indicator_id_pairs = list(
                 zip(

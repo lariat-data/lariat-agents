@@ -6,9 +6,9 @@ def test_construct_select_predicate():
     This test tests the construct_select_predicate functionality in BaseQueryBuilder.
     """
     response = BaseQueryBuilder.construct_select_predicate({"col1": "alias"})
-    assert response == "col1 as alias"
+    assert response == 'col1 as "alias"'
     response = BaseQueryBuilder.construct_select_predicate("col2")
-    assert response == "col2 as col2"
+    assert response == 'col2 as "col2"'
 
 
 def test_add_timestamp_fields():
