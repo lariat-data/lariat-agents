@@ -11,6 +11,7 @@ SQL_TYPE_TO_JSON_TYPE = {
     "text": ("string", None),
     "number": ("number", None),
     "varchar": ("string", None),
+    "string": ("string", None),
     "date": ("string", "date"),
     "time": ("string", "time"),
     "double": ("number", "double"),
@@ -25,6 +26,7 @@ SQL_TYPE_TO_JSON_TYPE = {
     "map": ("object", None),
     "smallint": ("integer", "smallint"),
     "tinyint": ("integer", "tinyint"),
+    "timestamp_ntz": ("integer", "date-time"),
 }
 
 
@@ -173,6 +175,22 @@ def transform_snowflake_to_json_schema(
                     information_schema=get_schema_from_type(column_type),
                     json_schema=json_schema[input_node],
                     input_node="items",
+                )
+        elif column["data_type"].startswith("variant"):
+            map_value_type = "string"
+            if "column_name" in column:
+                json_schema[input_node][
+                    column["column_name"]
+                ] = transform_snowflake_to_json_schema(
+                    information_schema=get_schema_from_type(map_value_type),
+                    json_schema={"type": "object", "additionalProperties": {}},
+                    input_node="additionalProperties",
+                )
+            else:
+                json_schema[input_node] = transform_snowflake_to_json_schema(
+                    information_schema=get_schema_from_type(map_value_type),
+                    json_schema={"type": "object", "additionalProperties": {}},
+                    input_node="additionalProperties",
                 )
         else:
             """
