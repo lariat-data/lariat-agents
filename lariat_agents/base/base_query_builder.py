@@ -129,7 +129,7 @@ class BaseQueryBuilder(ABC):
                 for key, val in field_description.items():
                     key = key.strip()
                     val = val.strip()
-                    return f"{key} as \"{val}\""
+                    return f'{key} as "{val}"'
         elif type(field_description) is str:
             field_description = field_description.strip()
             return f'{field_description} as "{field_description}"'
