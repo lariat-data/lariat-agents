@@ -45,8 +45,10 @@ LARIAT_INDICATOR_URL = f"{LARIAT_BASE_URL}/indicators"
 LARIAT_INDICATOR_STATUS_URL = f"{LARIAT_BASE_URL}/indicator_status"
 INDICATOR_QUERY_OUTPUT_KEY_PREFIX = "sketches"
 LARIAT_SCHEMA_URL = f"{LARIAT_BASE_URL}/information_schema"
-LARIAT_EVENT_NAME = "batch.database_table"
+LARIAT_EVENT_NAME = os.getenv("LARIAT_EVENT_NAME", "batch.database_table")
 BACKFILL_LARIAT_INDICATOR_URL = f"{LARIAT_BASE_URL}/backfill_indicators"
+LARIAT_PYTHON_API_BASE_URL = os.getenv("LARIAT_PYTHON_API_ENDPOINT")
+LARIAT_PROCESS_SCHEMA_URL = f"{LARIAT_PYTHON_API_BASE_URL}/process_streaming_schema"
 
 ORG_ID = "org_id"
 AGENT_INTER_QUERY_GAP = 1.0  # time to wait before launching another query in seconds

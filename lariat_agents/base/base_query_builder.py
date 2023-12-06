@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 import re
 from lariat_agents.constants import (
     RESULT_OUTPUT_RESULT_MIN_TS,
@@ -83,6 +83,8 @@ class BaseQueryBuilder(ABC):
         evaluation_time: int,
         lookback_time: int,
         filter_str: str,
+        name_data_map: Dict = None,
+        raw_dataset_names: List = None,
     ):
         """
         Constructs the query to collect data based on the provided calculations and indicators. This
@@ -129,7 +131,7 @@ class BaseQueryBuilder(ABC):
                 for key, val in field_description.items():
                     key = key.strip()
                     val = val.strip()
-                    return f"{key} as \"{val}\""
+                    return f'{key} as "{val}"'
         elif type(field_description) is str:
             field_description = field_description.strip()
             return f'{field_description} as "{field_description}"'

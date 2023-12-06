@@ -20,7 +20,7 @@ from lariat_agents.constants import (
     RESULT_OUTPUT_LOOKBACK_RANGE_START_TS,
 )
 
-from typing import List
+from typing import List, Dict
 from lariat_python_common.snowflake import schema as lariat_schema_utils
 
 
@@ -188,6 +188,8 @@ class SnowflakeQueryBuilder(BaseQueryBuilder):
         evaluation_time: int,
         lookback_time: int,
         filter_str: str,
+        name_data_map: Dict = None,
+        raw_dataset_names: List = None,
     ) -> str:
         """
         In the sketch case, sketch functions are delegated to udfs and group variables need to be added to the end

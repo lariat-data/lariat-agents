@@ -223,6 +223,25 @@ class BaseAgent(ABC):
 
         return True
 
+    def get_lariat_indicator_json_from_streaming(self, endpoint, payload):
+        """
+        Sends a request to the Lariat Server to receive a list of indicators and evaluation times
+        to collect health metrics for given the schema streaming payload.
+        :return: Pandas dataframe with list of indicators that each have a list of evaluation times and other
+        relevant information such as name, group_fields
+        """
+        data = json.dumps(payload)
+        data = data.encode("utf-8")
+        headers = {
+            "Content-Type": "application/json; charset=utf-8",
+            "X-Lariat-Api-Key": self._api_key,
+            "X-Lariat-Application-Key": self._application_key,
+        }
+        req = request.Request(url=endpoint, data=data, headers=headers)
+        with request.urlopen(req) as url:
+            data = pd.read_json(url.read().decode()).fillna("")
+        return data
+
     def get_lariat_indicator_json(self, indicator_url):
         """
         Sends a request to the Lariat Server to receive a list of indicators and evaluation times
@@ -247,6 +266,8 @@ class BaseAgent(ABC):
         indicators: pd.DataFrame,
         expect_results: bool,
         sketch_type_in_hash: bool = False,
+        name_data_map: Dict = None,
+        raw_dataset_names: List = None,
     ):
         """
         Represents the logic to parse the indicators format that comes from the Lariat service.
@@ -345,6 +366,8 @@ class BaseAgent(ABC):
                 evaluation_time=evaluation_time,
                 lookback_time=lookback_window_length,
                 filter_str=filter_str,
+                name_data_map=name_data_map,
+                raw_dataset_names=raw_dataset_names,
             )
             indicator_query_output_key = f"{INDICATOR_QUERY_OUTPUT_KEY_PREFIX}/org_id={org_id}/source_id={source_id}"
             ingestion_time = datetime.datetime.utcnow()

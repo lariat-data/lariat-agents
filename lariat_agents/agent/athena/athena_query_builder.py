@@ -11,7 +11,7 @@ from lariat_python_common.athena.custom_exceptions import (
 )
 from lariat_agents.constants import LARIAT_EVENT_NAME
 
-from typing import List
+from typing import List, Dict
 from lariat_python_common.athena import schema as lariat_schema_utils
 import pandas as pd
 import io
@@ -162,6 +162,8 @@ class AthenaQueryBuilder(BaseQueryBuilder):
         evaluation_time: int,
         lookback_time: int,
         filter_str: str,
+        name_data_map: Dict = None,
+        raw_dataset_names: List = None,
     ) -> str:
         select_predicate = list(map(self.construct_select_predicate, group_fields))
         for calculation, indicator_id in calculation_indicator_id_pairs:
