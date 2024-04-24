@@ -1,4 +1,4 @@
-from lariat_agents.base.base_agent import BaseAgent
+from lariat_agents.base.batch_base import BatchBaseAgent
 from lariat_agents.constants import (
     LARIAT_INDICATOR_URL,
     BACKFILL_LARIAT_INDICATOR_URL,
@@ -25,7 +25,7 @@ ATHENA_STATE_CHANGE = "Athena Query State Change"
 CLOUDWATCH_ATHENA_EVENT_DETAIL_TYPE = "detail-type"
 
 
-class AthenaAgent(BaseAgent):
+class AthenaAgent(BatchBaseAgent):
     def __init__(
         self,
         agent_type: str,
@@ -95,7 +95,7 @@ class AthenaAgent(BaseAgent):
                         indicator_statuses=indicator_statuses,
                     )
 
-    def schema_retrieval(self):
+    def schema_retrieval(self, event_dict=None):
         output_schema_list = []
         agent_config = self.get_yaml_config()
         source_id = agent_config["source_id"]
@@ -144,3 +144,15 @@ class AthenaAgent(BaseAgent):
             self.schema_retrieval()
         else:
             raise ValueError(f"Invalid Action Specified {action}")
+
+
+if __name__ == "__main__":
+    import boto3
+
+    athena = boto3.client("athena")
+    s3 = boto3.client("s3")
+    agent = AthenaAgent(
+        agent_type="athena", cloud="local", athena_handler=athena, s3_handler=s3
+    )
+    indicators = agent.get_lariat_indicator_json(LARIAT_INDICATOR_URL)
+    agent.execute_indicators(indicators=indicators, expect_results=False)

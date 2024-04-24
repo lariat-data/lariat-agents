@@ -5,7 +5,6 @@ from lariat_agents.constants import (
     RESULT_OUTPUT_RESULT_MAX_TS,
     RESULT_OUTPUT_RESULT_MIN_TS,
     RESULT_OUTPUT_LOOKBACK_RANGE_END_TS,
-    RESULT_OUTPUT_LOOKBACK_RANGE_START_TS,
 )
 from lariat_agents.base.base_sink import BaseSink
 from datadog_api_client import ApiClient, Configuration

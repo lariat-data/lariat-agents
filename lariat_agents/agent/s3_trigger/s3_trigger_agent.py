@@ -1,17 +1,18 @@
-from lariat_agents.base.base_agent import BaseAgent
+from lariat_agents.base.batch_base import BatchBaseAgent
 from boto3_type_annotations import s3
 import json
 from genson import SchemaBuilder
 from lariat_python_common.schema.utils import get_clean_schema
 from lariat_python_common.string.utils import match_lariat_file_partition_pattern
 from lariat_agents.constants import LARIAT_EVENT_NAME, LARIAT_PROCESS_SCHEMA_URL
-from s3_trigger_query_builder import S3TriggerQueryBuilder
-from datetime import datetime, timedelta
+from lariat_agents.agent.s3_trigger.s3_trigger_query_builder import (
+    S3TriggerQueryBuilder,
+)
+from datetime import datetime
 import croniter
-import time
 
 
-class S3TriggerAgent(BaseAgent):
+class S3TriggerAgent(BatchBaseAgent):
     def __init__(
         self,
         agent_type: str,
@@ -94,7 +95,7 @@ class S3TriggerAgent(BaseAgent):
                                         file_content = (
                                             response["Body"].read().decode("utf-8")
                                         )
-                                        if bucket_config.get("lines") == True:
+                                        if bucket_config.get("lines"):
                                             jsonl_lines = file_content.splitlines()
                                             final_merged_data = {}
                                             for json_line in jsonl_lines:

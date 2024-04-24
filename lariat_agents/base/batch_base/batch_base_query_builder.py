@@ -9,7 +9,7 @@ from lariat_agents.constants import (
 )
 
 
-class BaseQueryBuilder(ABC):
+class BatchBaseQueryBuilder(ABC):
     """
     This class provides the expected interface to:
     - Take a group of indicators and return the actual query run against a database or data warehouse
@@ -83,8 +83,8 @@ class BaseQueryBuilder(ABC):
         evaluation_time: int,
         lookback_time: int,
         filter_str: str,
-        name_data_map: Dict = None,
-        raw_dataset_names: List = None,
+        name_data_map=None,
+        raw_dataset_names=None,
     ):
         """
         Constructs the query to collect data based on the provided calculations and indicators. This
@@ -98,6 +98,8 @@ class BaseQueryBuilder(ABC):
         :param lookback_time: the amount of data to lookback for from evalaution time to compute the indicator
         :param filter_str: a string representing the sql predicate (from after the WHERE clause) to filter the data from the
         indicator
+        :param name_data_map
+        :param raw_dataset_names
         :return: A string representation of a query to be executed to compute all of the indicators in the compute
         family
         """
@@ -162,7 +164,7 @@ class BaseQueryBuilder(ABC):
         (
             indicator_list,
             evaluation_time,
-        ) = BaseQueryBuilder.get_indicators_from_query_str(query)
+        ) = BatchBaseQueryBuilder.get_indicators_from_query_str(query)
         for indicator in indicator_list:
             indicator_record = {
                 "indicator_id": indicator,

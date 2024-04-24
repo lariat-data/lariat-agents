@@ -1,4 +1,4 @@
-from lariat_agents.base.base_agent import BaseAgent
+from lariat_agents.base.batch_base import BatchBaseAgent
 from lariat_agents.constants import (
     LARIAT_INDICATOR_URL,
     BACKFILL_LARIAT_INDICATOR_URL,
@@ -16,7 +16,7 @@ LARIAT_UDF_DB = os.getenv("LARIAT_META_DB", '"lariat_meta_db"')
 LARIAT_UDF_SCHEMA = os.getenv("LARIAT_META_SCHEMA", '"lariat"')
 
 
-class SnowflakeAgent(BaseAgent):
+class SnowflakeAgent(BatchBaseAgent):
     def __init__(
         self,
         agent_type: str,
@@ -40,7 +40,7 @@ class SnowflakeAgent(BaseAgent):
             query_builder=query_builder,
         )
 
-    def schema_retrieval(self):
+    def schema_retrieval(self, event_dict=None):
         output_schema_list = []
         agent_config = self.get_yaml_config()
         source_id = agent_config["source_id"]

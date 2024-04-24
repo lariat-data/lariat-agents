@@ -55,7 +55,7 @@ def match_lariat_file_partition_pattern(suffix, partition_pattern):
             pattern_parts.append(text)
         elif key:
             pattern_parts.append(f"(.+?)")
-    pattern_to_be_matched = "/".join(pattern_parts)
+    pattern_to_be_matched = "/".join(pattern_parts) + "/"
     pattern_match = re.match(pattern_to_be_matched, suffix)
     if pattern_match:
         # Pattern matched

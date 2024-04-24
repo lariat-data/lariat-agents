@@ -1,5 +1,7 @@
 import boto3
-from lariat_agents.agent.s3_trigger.s3_trigger_agent import S3TriggerAgent
+from lariat_agents.agent.event_payload.event_payload_agent import EventPayloadAgent
+import logging
+import json
 
 
 def lambda_handler(event, context):
@@ -10,5 +12,6 @@ def lambda_handler(event, context):
     :return:
     """
     s3 = boto3.client("s3")
-    agent = S3TriggerAgent(agent_type="s3_trigger", cloud="aws", s3_handler=s3)
+    logging.warning(f"{json.dumps({'input_event': event})}")
+    agent = EventPayloadAgent(agent_type="event_payload", cloud="aws", s3_handler=s3)
     return agent.map_action_to_function(None, event)
