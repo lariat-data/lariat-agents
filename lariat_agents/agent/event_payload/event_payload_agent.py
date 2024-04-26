@@ -14,6 +14,8 @@ from lariat_agents.constants import (
 )
 from lariat_agents.agent.event_payload.event_payload_query_builder import (
     EventPayloadQueryBuilder,
+    META_PREFIX,
+    OBJECT_PREFIX,
 )
 from datetime import datetime
 from lariat_agents.agent.event_payload.event_payload_types import SupportedPayloadFormat
@@ -90,23 +92,35 @@ class EventPayloadAgent(StreamingBaseAgent):
                         object_data = json.loads(json_line)
                         final_merged_data.update(object_data)
                     clean_schema = get_schema_from_json(
-                        final_merged_data, partition_fields_in_data
+                        final_merged_data,
+                        partition_fields_in_data,
+                        OBJECT_PREFIX,
+                        META_PREFIX,
                     )
                 elif file_type == SupportedPayloadFormat.JSON:
                     file_content = file_content.decode("utf-8")
                     final_merged_data = json.loads(file_content)
                     clean_schema = get_schema_from_json(
-                        final_merged_data, partition_fields_in_data
+                        final_merged_data,
+                        partition_fields_in_data,
+                        OBJECT_PREFIX,
+                        META_PREFIX,
                     )
                 elif file_type == SupportedPayloadFormat.CSV:
                     file_content = file_content.decode("utf-8")
                     clean_schema = get_schema_from_csv(
-                        file_content, partition_fields_in_data
+                        file_content,
+                        partition_fields_in_data,
+                        OBJECT_PREFIX,
+                        META_PREFIX,
                     )
                     final_merged_data = file_content
                 elif file_type == SupportedPayloadFormat.PARQUET:
                     clean_schema = get_schema_from_parquet_object(
-                        file_content, partition_fields_in_data
+                        file_content,
+                        partition_fields_in_data,
+                        OBJECT_PREFIX,
+                        META_PREFIX,
                     )
                     final_merged_data = file_content
 
@@ -132,8 +146,8 @@ class EventPayloadAgent(StreamingBaseAgent):
             for file_family in self.yaml_config["buckets"].values():
                 for prefix_item in file_family:
                     if prefix_item.get("name") == dataset_name:
-                        string_columns = {}
-                        numeric_columns = {}
+                        string_columns = []
+                        numeric_columns = []
                         timestamp_mappings = {}
                         dimensions = prefix_item.get("dimensions", [])
                         if (
@@ -143,6 +157,8 @@ class EventPayloadAgent(StreamingBaseAgent):
                             string_columns = prefix_item.get("columns", {}).get(
                                 "string", []
                             )
+                            if string_columns is None:
+                                string_columns = []
                         if (
                             "columns" in prefix_item
                             and "number" in prefix_item["columns"]
@@ -150,6 +166,8 @@ class EventPayloadAgent(StreamingBaseAgent):
                             numeric_columns = prefix_item.get("columns", {}).get(
                                 "number", []
                             )
+                            if numeric_columns is None:
+                                numeric_columns = []
                         if "timestamp" in prefix_item:
                             timestamp_mappings = prefix_item.get("timestamp", {})
 
@@ -162,7 +180,12 @@ class EventPayloadAgent(StreamingBaseAgent):
                             raw_event,
                         ) = name_data_map[dataset_name]
                         source_id = self.yaml_config["source_id"]
-                        output_df, execution_time = self.query_builder.run(
+                        (
+                            output_df,
+                            execution_time,
+                            primary_time_column,
+                            filtered_dimensions,
+                        ) = self.query_builder.run(
                             file_content,
                             partition_fields_in_data,
                             clean_schema,
@@ -175,37 +198,15 @@ class EventPayloadAgent(StreamingBaseAgent):
                             dataset_name,
                             (bucket_name, object_key),
                         )
-
                         if output_df is not None:
-                            min_primary_time_column = next(
-                                (
-                                    col
-                                    for col in output_df.columns
-                                    if col.startswith("primary_time|min")
-                                ),
-                                None,
-                            )
-                            max_primary_time_column = next(
-                                (
-                                    col
-                                    for col in output_df.columns
-                                    if col.startswith("primary_time|max")
-                                ),
-                                None,
-                            )
                             min_primary_time = (
-                                output_df[min_primary_time_column].min().item()
-                                if min_primary_time_column
+                                output_df[primary_time_column].min().item()
+                                if primary_time_column
                                 else None
                             )
                             max_primary_time = (
-                                output_df[max_primary_time_column].min().item()
-                                if max_primary_time_column
-                                else None
-                            )
-                            primary_time_column = (
-                                min_primary_time_column.removeprefix("primary_time|min")
-                                if min_primary_time
+                                output_df[primary_time_column].max().item()
+                                if primary_time_column
                                 else None
                             )
                             event_dict = {
@@ -216,14 +217,14 @@ class EventPayloadAgent(StreamingBaseAgent):
                                 "min_primary_time": min_primary_time,
                                 "max_primary_time": max_primary_time,
                                 "primary_time_column": primary_time_column,
+                                "lariat_dataset_name": dataset_name,
                             }
-
-                            if dimensions and PERSIST_UNIQUE_DIMENSION_VALUES:
+                            if filtered_dimensions and PERSIST_UNIQUE_DIMENSION_VALUES:
                                 unique_dimension_values = {
                                     dim: output_df[f"dim|{dim}"]
                                     .drop_duplicates()
                                     .tolist()
-                                    for dim in dimensions
+                                    for dim in filtered_dimensions
                                 }
                                 event_dict["dimensions"] = unique_dimension_values
                             else:

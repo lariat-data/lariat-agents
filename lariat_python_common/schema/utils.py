@@ -19,7 +19,12 @@ def cast_value_by_inferred_type(value):
         return value
 
 
-def update_schema_with_json(existing_schema, additional_json):
+def update_schema_with_json(
+    existing_schema,
+    additional_json,
+    existing_prefix="existing.",
+    additional_prefix="additional.",
+):
     if additional_json:
         type_modified_additional_json = {
             k: cast_value_by_inferred_type(v) for k, v in additional_json.items()
@@ -27,7 +32,22 @@ def update_schema_with_json(existing_schema, additional_json):
         builder = SchemaBuilder()
         builder.add_object(type_modified_additional_json)
         additional_properties_schema = builder.to_schema()
-        existing_schema["properties"].update(additional_properties_schema["properties"])
+        # Creating a copy to modify keys without affecting the original
+        new_properties = {}
+
+        # Handles un-nested duplicates
+        for key, value in additional_properties_schema["properties"].items():
+            if key in existing_schema["properties"]:
+                new_key = f"{additional_prefix}{key}"
+                new_properties[new_key] = value
+                existing_schema["properties"][
+                    f"{existing_prefix}{key}"
+                ] = existing_schema["properties"][key]
+                del existing_schema["properties"][key]
+            else:
+                new_properties[key] = value
+
+        existing_schema["properties"].update(new_properties)
     return existing_schema
 
 
@@ -96,41 +116,55 @@ def convert_arrow_schema_to_json_schema(arrow_schema):
     return json.dumps(json_schema, sort_keys=True)
 
 
-def get_schema_from_parquet_object(file_content, additional_json=None):
+def get_schema_from_parquet_object(
+    file_content,
+    additional_json=None,
+    existing_prefix="existing.",
+    additional_prefix="additional.",
+):
     """
     Given a parquet file loaded in as bytes, get the json schema representation
     Additional JSON represents other fields to be added into the schema. It is a non-nested dict
     We use this when we have a few additional meta fields to add into a schema representation (e.g. partition vars)
     TODO: Replace with a version that doesn't require reading the entire file and looking directly at the header
     :param file_content:
-    :param additional_json
+    :param additional_json:
+    :param existing_prefix
+    :param additional_prefix
     :return:
     """
     table = pq.read_table(pa.BufferReader(file_content))
     arrow_schema = table.schema
     existing_schema = json.loads(convert_arrow_schema_to_json_schema(arrow_schema))
-    updated_schema = update_schema_with_json(existing_schema, additional_json)
+    updated_schema = update_schema_with_json(
+        existing_schema, additional_json, existing_prefix, additional_prefix
+    )
     return updated_schema
 
 
-def get_schema_from_json(json_content, additional_json=None):
+def get_schema_from_json(
+    json_content,
+    additional_json=None,
+    existing_prefix="existing.",
+    additional_prefix="additional.",
+):
     """
     Get the JSONSchema of a json record. Additional JSON represents other fields to be added into the schema.
     It is a non-nested dict
     We use this when we have a few additional meta fields to add into a schema representation (e.g. partition vars)
     :param json_content:
     :param additional_json:
+    :param existing_prefix:
+    :param additional_prefix:
     :return:
     """
-    if additional_json:
-        type_modified_additional_json = {
-            k: cast_value_by_inferred_type(v) for k, v in additional_json.items()
-        }
-        json_content.update(type_modified_additional_json)
     builder = SchemaBuilder()
     builder.add_object(json_content)
     cleaned_schema = get_clean_schema(builder)
-    return cleaned_schema
+    updated_schema = update_schema_with_json(
+        cleaned_schema, additional_json, existing_prefix, additional_prefix
+    )
+    return updated_schema
 
 
 # Function to map pandas dtypes to JSON Schema data types
@@ -155,16 +189,25 @@ def get_schema_from_df(df):
     }
 
 
-def get_schema_from_csv(csv_content, additional_json=None):
+def get_schema_from_csv(
+    csv_content,
+    additional_json=None,
+    existing_prefix="existing.",
+    additional_prefix="additional.",
+):
     """
     Get the JSONSchema of a json record. Additional JSON represents other fields to be added into the schema.
     It is a non-nested dict
     We use this when we have a few additional meta fields to add into a schema representation (e.g. partition vars)
-    :param json_content:
+    :param csv_content:
     :param additional_json:
+    :param existing_prefix:
+    :param additional_prefix:
     :return:
     """
     df = pd.read_csv(pd.io.common.StringIO(csv_content), nrows=5)
     existing_schema = get_schema_from_df(df)
-    updated_schema = update_schema_with_json(existing_schema, additional_json)
+    updated_schema = update_schema_with_json(
+        existing_schema, additional_json, existing_prefix, additional_prefix
+    )
     return updated_schema

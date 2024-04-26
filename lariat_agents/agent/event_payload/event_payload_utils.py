@@ -8,6 +8,8 @@ from urllib.parse import unquote_plus
 import json
 from lariat_python_common.string.utils import match_lariat_file_partition_pattern
 
+DEFAULT_PARTITION_SEPARATOR = "="
+
 
 def process_sns_s3_event(
     event_obj: Dict, payload_source: PayloadSource
@@ -26,7 +28,7 @@ def process_sns_s3_event(
                     bucket=input_bucket_name,
                     object_key=input_object_name,
                     payload_source=payload_source,
-                    raw_event=trigger_events,
+                    raw_event=trigger_event,
                 )
             )
     return event_payload_list
@@ -47,7 +49,7 @@ def process_s3_trigger_event(
                 bucket=input_bucket_name,
                 object_key=input_object_name,
                 payload_source=payload_source,
-                raw_event=event_obj,
+                raw_event=trigger_event,
             )
         )
     return event_payload_list
@@ -82,8 +84,13 @@ def collect_payload_from_s3(agent_config, bucket_name, object_key, s3_handler):
                     .removeprefix("/")
                     .removesuffix("/")
                 )
+                partition_separator = bucket_config.get(
+                    "partition_separator", DEFAULT_PARTITION_SEPARATOR
+                )
                 partition_fields_in_data = match_lariat_file_partition_pattern(
-                    suffix_key, bucket_config.get("suffix_template")
+                    suffix_key,
+                    bucket_config.get("suffix_template"),
+                    partition_separator,
                 )
                 if partition_fields_in_data:
                     # Retrieve data

@@ -20,6 +20,9 @@ TIME_MAX_PREFIX = "max_"
 TIME_MIN_PREFIX = "min_"
 PREFIX_FOR_PRIMARY = TIME_MAX_PREFIX
 
+META_PREFIX = "partition."
+OBJECT_PREFIX = "object."
+
 
 class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
     def __init__(
@@ -62,11 +65,16 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             minute = 0
             hour = 0
             day = 1
+            month = 1
         elif max_or_min == "max":
             second = 59
             minute = 59
             hour = 23
-            day = row + pd.offsets.MonthEnd(1)
+            if has_month:
+                day = row + pd.offsets.MonthEnd(1)
+            else:
+                day = 31
+            month = 12
         else:
             raise TypeError(
                 f"Expected one of min or max in the max_or_min argument. Got {max_or_min}"
@@ -82,6 +90,10 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             return row.replace(hour=hour, minute=minute, second=second)
         elif has_month:  # Precision is to the month
             return row.replace(day=day, hour=hour, minute=minute, second=second)
+        elif has_year:
+            return row.replace(
+                month=month, day=day, hour=hour, minute=minute, second=second
+            )
         else:
             return row
 
@@ -212,6 +224,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         timestamp_cols,
         source_id,
         dataset_name,
+        unfiltered_dimensions,
         aggregations=None,
     ):
         agg_dict = {}
@@ -262,7 +275,9 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             results_df.columns = pd.MultiIndex.from_tuples(results_df.columns)
             grouped = results_df
 
-        derived_metric_key_tail = f"{'|'.join(dimensions)}|{source_id}|{dataset_name}"
+        derived_metric_key_tail = (
+            f"{'|'.join(unfiltered_dimensions)}|{source_id}|{dataset_name}"
+        )
         list_uniquifier = DelimiterSeparatedListUniquifier("|")
         hashed_key_tail = list_uniquifier.uniquify_string(derived_metric_key_tail)
         grouped.columns = [
@@ -272,6 +287,109 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             for col in grouped.columns
         ]
         return grouped
+
+    @staticmethod
+    def resolve_duplicate_columns_from_columns_list(
+        object_keys,
+        partition_keys,
+        column_list,
+    ):
+        common_keys = list(set(object_keys) & set(partition_keys))
+        keys_to_keep_in_objects = set()
+        new_column_list = []
+        column_transforms = {}
+        for mapping in column_list:
+            if (
+                mapping.startswith(OBJECT_PREFIX)
+                and mapping.removeprefix(OBJECT_PREFIX) in object_keys
+            ):
+                if mapping.removeprefix(OBJECT_PREFIX) in common_keys:
+                    keys_to_keep_in_objects.add(mapping)
+                else:
+                    mapping = mapping.removeprefix(OBJECT_PREFIX)
+                new_column_list.append(mapping)
+            elif (
+                mapping.startswith(META_PREFIX)
+                and mapping.removeprefix(META_PREFIX) in partition_keys
+            ):
+                if mapping.removeprefix(META_PREFIX) in common_keys:
+                    keys_to_keep_in_objects.add(mapping)
+                else:
+                    mapping = mapping.removeprefix(META_PREFIX)
+                new_column_list.append(mapping)
+            elif mapping in common_keys:
+                new_column_list.append(f"{META_PREFIX}{mapping}")
+                column_transforms[mapping] = f"{META_PREFIX}{mapping}"
+            else:
+                new_column_list.append(mapping)
+
+        return new_column_list, keys_to_keep_in_objects, column_transforms
+
+    @staticmethod
+    def handle_column_naming_in_df(
+        df,
+        object_keys,
+        partition_keys,
+        partition_fields_in_data,
+        dimensions,
+        string_columns,
+        numeric_columns,
+    ):
+        """
+        When we have overlaps in column names in partitions and in the file content itself, we handle it by
+        adding the appropriate prefixes to the data. We also remove unnecessary prefixes when not necessary.
+
+        Additionally, we fold in the partition_fields into the dataframe
+        :param df:
+        :param object_keys:
+        :param partition_keys:
+        :param partition_fields_in_data:
+        :param dimensions:
+        :param string_columns:
+        :param numeric_columns:
+        :return:
+        """
+        (
+            dimensions,
+            keys_to_keep_in_objects,
+            dim_column_transforms,
+        ) = EventPayloadQueryBuilder.resolve_duplicate_columns_from_columns_list(
+            object_keys, partition_keys, dimensions
+        )
+        (
+            string_columns,
+            string_keys_to_keep,
+            str_column_transforms,
+        ) = EventPayloadQueryBuilder.resolve_duplicate_columns_from_columns_list(
+            object_keys, partition_keys, string_columns
+        )
+        (
+            numeric_columns,
+            numeric_keys_to_keep,
+            num_column_transforms,
+        ) = EventPayloadQueryBuilder.resolve_duplicate_columns_from_columns_list(
+            object_keys, partition_keys, numeric_columns
+        )
+        keys_to_keep_in_objects = (
+            keys_to_keep_in_objects | numeric_keys_to_keep | string_keys_to_keep
+        )
+        rename_dict = {
+            col.removeprefix(META_PREFIX).removeprefix(OBJECT_PREFIX): col
+            for col in keys_to_keep_in_objects
+        }
+        df.rename(columns=rename_dict, inplace=True)
+        partition_field_mappings = {
+            **dim_column_transforms,
+            **str_column_transforms,
+            **num_column_transforms,
+        }
+        if partition_fields_in_data:
+            for key, value in partition_fields_in_data.items():
+                if key in partition_field_mappings:
+                    df[partition_field_mappings[key]] = value
+                else:
+                    df[key] = value
+        return df, dimensions, string_columns, numeric_columns
 
     def run(
         self,
@@ -299,10 +417,25 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         elif file_type == SupportedPayloadFormat.CSV:
             df = pd.read_csv(pd.io.common.StringIO(file_content))
         if df is not None:
+            object_keys = df.columns
+            partition_keys = list()
             if partition_fields_in_data:
-                for key, value in partition_fields_in_data.items():
-                    df[key] = value
+                partition_keys = list(partition_fields_in_data.keys())
 
+            (
+                df,
+                dimensions,
+                string_columns,
+                numeric_columns,
+            ) = EventPayloadQueryBuilder.handle_column_naming_in_df(
+                df,
+                object_keys,
+                partition_keys,
+                partition_fields_in_data,
+                dimensions,
+                string_columns,
+                numeric_columns,
+            )
             columns_set = set(df.columns)
             timestamp_cols, primary_timestamp_column = self.set_df_timestamp_vars(
                 df, timestamp_mappings
@@ -322,15 +455,29 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                     timestamp_cols,
                     source_id,
                     dataset_name,
+                    dimensions,
                     ["count", ("null_count", lambda x: x.isnull().sum())],
+                )
+                temp_df = df[numeric_columns].apply(pd.to_numeric, errors="coerce")
+                filtered_numeric_columns = []
+                for col in numeric_columns:
+                    if temp_df[col].isna().any():
+                        logging.warning(
+                            f"Column '{col}' cannot be converted to numeric type."
+                        )
+                    else:
+                        filtered_numeric_columns.append(col)
+                df[filtered_numeric_columns] = df[filtered_numeric_columns].apply(
+                    pd.to_numeric, errors="coerce"
                 )
                 output_data_numeric_agg = self.calculate_aggregations(
                     df,
-                    numeric_columns,
+                    filtered_numeric_columns,
                     filtered_dimensions,
                     timestamp_cols,
                     source_id,
                     dataset_name,
+                    dimensions,
                     [
                         "count",
                         "sum",
@@ -390,4 +537,9 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                     },
                     inplace=True,
                 )
-            return merged_df, execution_time
+            return (
+                merged_df,
+                execution_time,
+                f"primary_time|{primary_timestamp_column}",
+                filtered_dimensions,
+            )
