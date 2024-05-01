@@ -1,4 +1,4 @@
-from lariat_agents.base.base_query_builder import BaseQueryBuilder
+from lariat_agents.base.batch_base.batch_base_query_builder import BatchBaseQueryBuilder
 import time
 import lariat_python_common.sql.utils as lariat_sql_utils
 import sqlparse
@@ -17,7 +17,7 @@ import pandas as pd
 import io
 
 
-class AthenaQueryBuilder(BaseQueryBuilder):
+class AthenaQueryBuilder(BatchBaseQueryBuilder):
     def __init__(
         self,
         query_builder_type: str,

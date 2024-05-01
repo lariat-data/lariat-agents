@@ -2,6 +2,10 @@
     Lariat Python Utilities for String Manipulation/Handling
 """
 import re
+from collections import deque
+
+
+DEFAULT_WILDCARD_CHAR = "*"
 
 
 def tokenize(string, separator=",", open_delimiter="(", close_delimiter=")"):
@@ -43,38 +47,49 @@ def tokenize(string, separator=",", open_delimiter="(", close_delimiter=")"):
     return separated_list
 
 
-def match_lariat_file_partition_pattern(suffix, partition_pattern):
+def match_lariat_file_partition_pattern(
+    suffix, partition_pattern, partition_key="=", wildcard_char=DEFAULT_WILDCARD_CHAR
+):
     matched_partition_and_key = {}
+
     # Extract variable names within curly braces, and angular brackets if suffix matches
     matches = re.findall(r"{([^}]+)}|([^{}\/<>]+)|<([^<>]+)>", partition_pattern)
     pattern_parts = []
+    varname_deque = (
+        deque()
+    )  # This keeps track of the partition rules per sectional definition
     for var, text, key in matches:
         if var:
-            pattern_parts.append(f"{var}=(.+?)")
+            if var != wildcard_char:
+                pattern_parts.append(f"{var}{partition_key}(.+?)")
+                varname_deque.append(var)
+            else:
+                pattern_parts.append(f"(.+?){partition_key}(.+?)")
+                varname_deque.append("*")
         elif text:
             pattern_parts.append(text)
+            if partition_key in text:
+                varname_deque.append(text.split(partition_key)[0])
+            else:
+                varname_deque.append(None)
         elif key:
             pattern_parts.append(f"(.+?)")
-    pattern_to_be_matched = "/".join(pattern_parts)
+            varname_deque.append(key)
+
+    pattern_to_be_matched = "/".join(pattern_parts) + "/"
     pattern_match = re.match(pattern_to_be_matched, suffix)
     if pattern_match:
-        # Pattern matched
-        values = [
-            pattern_match.group(i + 1) for i in range(len(pattern_match.groups()))
-        ]
-        variable_names = re.findall(r"{([^}]+)}|<([^<>]+)>", partition_pattern)
-        result_match_dict = {
-            var: value
-            for var, value in zip(variable_names, values)
-            if value is not None
-        }
-
-        for result_tuple, value in result_match_dict.items():
-            partition, key = result_tuple
-            if partition:
-                matched_partition_and_key[partition] = value
-            elif key:
-                matched_partition_and_key[key] = value
+        suffix_list = suffix.split("/")
+        matched_partition_and_key = {}
+        for elem in suffix_list:
+            if len(varname_deque) > 0:
+                varname = varname_deque.popleft()
+                if varname:
+                    if partition_key in elem:
+                        key, val = elem.split(partition_key)
+                        matched_partition_and_key[key] = val
+                    else:
+                        matched_partition_and_key[varname] = elem
     return matched_partition_and_key
 
 

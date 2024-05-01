@@ -32,7 +32,6 @@ from lariat_agents.constants import (
     SINK_TYPE,
     LARIAT_SINK_TYPE,
     DATADOG_SINK_TYPE,
-    GRAFANA_SINK_TYPE,
     LARIAT_API_KEY,
     LARIAT_APPLICATION_KEY,
     SKETCH_TYPE_DISTINCT,
@@ -55,7 +54,7 @@ import pandas as pd
 import time
 import lariat_python_common.sql.utils as lariat_sql_utils
 import datetime
-from lariat_agents.base.base_query_builder import BaseQueryBuilder
+from lariat_agents.base.batch_base.batch_base_query_builder import BatchBaseQueryBuilder
 from lariat_agents.sink.lariat_sink import LariatSink
 from lariat_agents.sink.datadog_sink import DatadogSink
 import sqlparse
@@ -67,7 +66,7 @@ from lariat_python_common.io.utils import (
 )
 
 
-class BaseAgent(ABC):
+class BatchBaseAgent(ABC):
     """
     The BaseAgent class is responsible for being the control center of the Lariat Agent.
     It is where the actions for retrieving and running indicators, along with getting schemata
@@ -86,7 +85,7 @@ class BaseAgent(ABC):
     The Base Agent class already has the flow built in for pulling the correct indicators from the Lariat platform.
     It also has the logic to send metadata about indicator status back to Lariat.
     It also pulls in the yaml config that has additional specification to customize the agent. (E.g. if the sink is
-    changed in the yaml config, that is automatically customized by the base agent).
+    changed in the yaml config, that is automatically customized by the batch_base agent).
     N.B.: When new sinks are added, the constructor of this class needs to be aware in order to make sure
     they send data to the correctly configured sink.
     """
@@ -95,7 +94,7 @@ class BaseAgent(ABC):
         self,
         agent_type: str,
         cloud: str,
-        query_builder: BaseQueryBuilder,
+        query_builder: BatchBaseQueryBuilder,
         api_key: str = None,
         application_key: str = None,
     ):
@@ -157,10 +156,11 @@ class BaseAgent(ABC):
         """
 
     @abstractmethod
-    def schema_retrieval(self):
+    def schema_retrieval(self, event_dict=None):
         """
         Read the yaml config, retrieve schemas from the agent store.
         Register the schema with the Lariat endpoint
+        :param event_dict: contains any relevant information about a triggering process
         """
 
     def get_yaml_config(self) -> Dict:
@@ -213,6 +213,7 @@ class BaseAgent(ABC):
         data = json.dumps(payload)
         data = data.encode("utf-8")
         req = request.Request(endpoint, data=data)
+        req.add_header("Content-Type", "application/json")
         req.add_header("X-Lariat-Api-Key", self._api_key)
         req.add_header("X-Lariat-Application-Key", self._application_key)
         try:
@@ -227,6 +228,9 @@ class BaseAgent(ABC):
         """
         Sends a request to the Lariat Server to receive a list of indicators and evaluation times
         to collect health metrics for given the schema streaming payload.
+
+        The schema payload is what makes this different
+
         :return: Pandas dataframe with list of indicators that each have a list of evaluation times and other
         relevant information such as name, group_fields
         """
@@ -283,6 +287,8 @@ class BaseAgent(ABC):
         :param sketch_type_in_hash: This is generally safe to set to False.
         If true, this makes sure that sketch functions are all run as individual queries
         each other. This might be necessary in cases where custom aggregations have to be called.
+        :param name_data_map
+        :param raw_dataset_names
         :return Nothing is returned from this function
         """
 

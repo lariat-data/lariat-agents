@@ -5,8 +5,8 @@ import boto3
 import pytest
 
 from lariat_agents.agent.athena.athena_agent import AthenaAgent
-from lariat_agents.base.base_agent import BaseAgent
-from lariat_agents.base.tests.data.test_cases import tests
+from lariat_agents.base.batch_base.batch_base_agent import BatchBaseAgent
+from lariat_agents.base.batch_base.tests.data.test_cases import tests
 from lariat_python_common.test.utils import data_loader, get_test_labels
 from moto import mock_athena, mock_s3
 from lariat_agents.constants import CLOUD_AGENT_CONFIG_PATH
@@ -73,5 +73,5 @@ def test_get_sketch_type_from_calculation(calculation, expect):
     """
     This tests the get_sketch_type_from_calculation functionality in BaseAgent.
     """
-    response = BaseAgent.get_sketch_type_from_calculation(calculation)
+    response = BatchBaseAgent.get_sketch_type_from_calculation(calculation)
     assert response == expect

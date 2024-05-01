@@ -1,6 +1,6 @@
 import traceback
 
-from lariat_agents.base.base_query_builder import BaseQueryBuilder
+from lariat_agents.base.batch_base.batch_base_query_builder import BatchBaseQueryBuilder
 import time
 import lariat_python_common.sql.utils as lariat_sql_utils
 import sqlparse
@@ -28,7 +28,7 @@ CATEGORICAL_TYPE = "categorical"
 NUMERICAL_TYPE = "numeric"
 
 
-class SnowflakeQueryBuilder(BaseQueryBuilder):
+class SnowflakeQueryBuilder(BatchBaseQueryBuilder):
     def __init__(
         self,
         query_builder_type: str,

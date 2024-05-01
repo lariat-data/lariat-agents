@@ -18,6 +18,7 @@ We have currently open-sourced the following agents:
 
 - Snowflake
 - Athena 
+- S3 Object Monitoring  
 
 Below are some agents we are in the process of open sourcing:
 - Postgres
@@ -46,15 +47,15 @@ This section of the repository includes convenience code that is factored out in
 
 The core components of the agent are: 
 
-#### base_agent: 
-The BaseAgent class is responsible for being the control center of the Lariat Agent. 
+#### (batch or streaming) base_agent: 
+The BatchBaseAgent and StreamingBaseAgent class are responsible for being the control center of the Lariat Agent. 
 It is where the actions for retrieving and running indicators, along with getting schemata are done. 
 
 Most of this abstract class has implemented functions that will not need to be reimplemented (i.e. gathering definitions from Lariat, pushing schemas out to Lariat, optimized query grouping )
 
 Note that an agent can either return results synchronously or asynchronously.
-#### base_query_builder: 
-BaseQueryBuilder is the interface to convert an indicator definition 
+#### (batch or streaming) base_query_builder: 
+The BatchBaseQueryBuilder and StreamingBaseQueryBuilder are the interface to convert an indicator definition 
 to actual queries that can then run against the database or data warehouse. 
 
 It also controls the logic for pulling schemas from the data source. 

@@ -1,13 +1,13 @@
-from lariat_agents.base.base_query_builder import BaseQueryBuilder
+from lariat_agents.base.batch_base.batch_base_query_builder import BatchBaseQueryBuilder
 
 
 def test_construct_select_predicate():
     """
     This test tests the construct_select_predicate functionality in BaseQueryBuilder.
     """
-    response = BaseQueryBuilder.construct_select_predicate({"col1": "alias"})
+    response = BatchBaseQueryBuilder.construct_select_predicate({"col1": "alias"})
     assert response == 'col1 as "alias"'
-    response = BaseQueryBuilder.construct_select_predicate("col2")
+    response = BatchBaseQueryBuilder.construct_select_predicate("col2")
     assert response == 'col2 as "col2"'
 
 
@@ -15,7 +15,7 @@ def test_add_timestamp_fields():
     """
     This test tests the add_timestamp_fields functionality in BaseQueryBuilder.
     """
-    response = BaseQueryBuilder.add_timestamp_fields(
+    response = BatchBaseQueryBuilder.add_timestamp_fields(
         timestamp_col="timestamp", evaluation_time=1654646400, lookback_time=1000
     )
     assert (

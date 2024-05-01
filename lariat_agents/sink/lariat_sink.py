@@ -59,7 +59,6 @@ class LariatSink(BaseSink):
                 role_arn_prefix=CROSS_ACCOUNT_ROLE_BASE_ARN,
                 region_name=LARIAT_SINK_CREDENTIALS_REGION_NAME,
             )
-
             if source_top_level and file_path:
                 if self.source_cloud == CLOUD_TYPE_AWS:
                     athena_source_location = {
@@ -78,18 +77,19 @@ class LariatSink(BaseSink):
                 if result_df.empty:
                     logging.warning("Empty Result Set: No Indicators Written")
                 else:
-                    result_df = result_df[
-                        ~result_df[RESULT_OUTPUT_RESULT_MAX_TS].isnull()
-                    ]
-                    result_df = result_df[
-                        ~result_df[RESULT_OUTPUT_RESULT_MIN_TS].isnull()
-                    ]
+                    if RESULT_OUTPUT_RESULT_MAX_TS in result_df.columns:
+                        result_df = result_df[
+                            ~result_df[RESULT_OUTPUT_RESULT_MAX_TS].isnull()
+                        ]
+                    if RESULT_OUTPUT_RESULT_MIN_TS in result_df.columns:
+                        result_df = result_df[
+                            ~result_df[RESULT_OUTPUT_RESULT_MIN_TS].isnull()
+                        ]
                     if result_df.empty:
                         logging.warning(
                             "No data available for indicators: No Indicators Written"
                         )
                         return
-
                     result_df.to_csv(
                         f"s3://{LARIAT_OUTPUT_BUCKET}/{file_path}",
                         index=False,
