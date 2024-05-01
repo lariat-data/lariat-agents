@@ -4,6 +4,9 @@ FROM public.ecr.aws/lambda/python:3.9
 RUN yum -y update
 RUN yum -y install gcc
 
+yum install file-libs
+yum install file-devel
+
 # Install the function's dependencies using file requirements.txt
 # from your project folder.
 

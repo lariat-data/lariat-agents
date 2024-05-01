@@ -18,7 +18,10 @@ from lariat_agents.agent.event_payload.event_payload_query_builder import (
     OBJECT_PREFIX,
 )
 from datetime import datetime
-from lariat_agents.agent.event_payload.event_payload_types import SupportedPayloadFormat
+from lariat_agents.agent.event_payload.event_payload_types import (
+    SupportedPayloadFormat,
+    CompressionType,
+)
 from lariat_agents.agent.event_payload.event_payload_utils import (
     process_event_payload,
     EventPayload,
@@ -30,6 +33,9 @@ import logging
 from pathlib import Path
 import time
 import hashlib
+import gzip
+import bz2
+import snappy
 
 
 class EventPayloadAgent(StreamingBaseAgent):
@@ -55,6 +61,18 @@ class EventPayloadAgent(StreamingBaseAgent):
             ),
         )
 
+    @staticmethod
+    def decode_content(file_content, compression):
+        if compression == CompressionType.NONE:
+            file_content = file_content.decode("utf-8")
+        elif compression == CompressionType.GZIP:
+            file_content = gzip.decompress(file_content).decode("utf-8")
+        elif compression == CompressionType.BZIP2:
+            file_content = bz2.decompress(file_content).decode("utf-8")
+        elif compression == CompressionType.SNAPPY:
+            file_content = snappy.uncompress(file_content).decode("utf-8")
+        return file_content
+
     def schema_retrieval(self, event_info: List[EventPayload] = None):
         output_schema_map = {}
         name_data_map = {}
@@ -69,6 +87,7 @@ class EventPayloadAgent(StreamingBaseAgent):
                 (
                     file_type,
                     file_content,
+                    compression,
                     config_name,
                     partition_fields_in_data,
                 ) = collect_payload_from_s3(
@@ -79,13 +98,16 @@ class EventPayloadAgent(StreamingBaseAgent):
                 partition_fields_in_data = None
                 bucket_name = None
                 object_key = None
+                compression = None
             final_merged_data = {}
             clean_schema = None
 
             if file_type and file_content:
                 file_type = SupportedPayloadFormat(file_type)
                 if file_type == SupportedPayloadFormat.JSONL:
-                    file_content = file_content.decode("utf-8")
+                    file_content = EventPayloadAgent.decode_content(
+                        file_content, compression
+                    )
                     jsonl_lines = file_content.splitlines()
                     final_merged_data = {}
                     for json_line in jsonl_lines:
@@ -98,7 +120,9 @@ class EventPayloadAgent(StreamingBaseAgent):
                         META_PREFIX,
                     )
                 elif file_type == SupportedPayloadFormat.JSON:
-                    file_content = file_content.decode("utf-8")
+                    file_content = EventPayloadAgent.decode_content(
+                        file_content, compression
+                    )
                     final_merged_data = json.loads(file_content)
                     clean_schema = get_schema_from_json(
                         final_merged_data,
@@ -107,7 +131,9 @@ class EventPayloadAgent(StreamingBaseAgent):
                         META_PREFIX,
                     )
                 elif file_type == SupportedPayloadFormat.CSV:
-                    file_content = file_content.decode("utf-8")
+                    file_content = EventPayloadAgent.decode_content(
+                        file_content, compression
+                    )
                     clean_schema = get_schema_from_csv(
                         file_content,
                         partition_fields_in_data,
@@ -249,7 +275,17 @@ class EventPayloadAgent(StreamingBaseAgent):
                             self.write_data(
                                 output_df, source_file_path=source_file_path
                             )
+
                         else:
+                            event_dict = {
+                                "input_event": raw_event,
+                                "parent_event": parent_event,
+                                "schema": clean_schema,
+                                "lariat_agent_execution_time": execution_time,
+                                "primary_time_column": primary_time_column,
+                                "lariat_dataset_name": dataset_name,
+                            }
+                            events.append(event_dict)
                             logging.warning(
                                 f"Data could not be written for {bucket_name} {object_key} "
                             )

@@ -27,3 +27,10 @@ class EventPayload(BaseModel):
     object_key: str
     payload_source: PayloadSource
     raw_event: Dict
+
+
+class CompressionType(Enum):
+    GZIP = "gzip"
+    BZIP2 = "bz2"
+    SNAPPY = "snappy"
+    NONE = None

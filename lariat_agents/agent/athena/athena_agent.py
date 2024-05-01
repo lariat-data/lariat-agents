@@ -1,4 +1,4 @@
-from lariat_agents.base.batch_base import BatchBaseAgent
+from lariat_agents.base.batch_base.batch_base_agent import BatchBaseAgent
 from lariat_agents.constants import (
     LARIAT_INDICATOR_URL,
     BACKFILL_LARIAT_INDICATOR_URL,

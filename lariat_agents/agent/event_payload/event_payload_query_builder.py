@@ -170,12 +170,19 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                 df[key] = pd.to_datetime(df[key], format=format_str)
                 if timezone:
                     try:
-                        df[key] = df[key].dt.tz_localize(timezone)
+                        if df[key].dt.tz is None:
+                            df[key] = df[key].dt.tz_localize(timezone)
+                        else:
+                            df[key] = df[key].dt.tz_convert(timezone)
                     except Exception as e:
                         logging.warning("Couldn't find timezone, keeping UTC")
-                        df[key] = df[key].dt.tz_localize("UTC")
+                        if df[key].dt.tz is None:
+                            df[key] = df[key].dt.tz_localize("UTC")
                 else:
-                    df[key] = df[key].dt.tz_localize("UTC")
+                    if df[key].dt.tz is None:
+                        df[key] = df[key].dt.tz_localize("UTC")
+                    else:
+                        df[key] = df[key].dt.tz_convert("UTC")
 
                 df[f"{TIME_MAX_PREFIX}{key}"] = df[key].apply(
                     lambda row: EventPayloadQueryBuilder.adjust_datetime_precision(
@@ -406,6 +413,8 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         location_info,
     ):
         df = None
+        execution_time = int(datetime.now().timestamp())
+
         if (
             file_type == SupportedPayloadFormat.JSONL
             or file_type == SupportedPayloadFormat.JSON
@@ -415,7 +424,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             table = pq.read_table(pa.BufferReader(file_content))
             df = table.to_pandas()
         elif file_type == SupportedPayloadFormat.CSV:
-            df = pd.read_csv(pd.io.common.StringIO(file_content))
+            df = pd.read_csv(pd.io.common.StringIO(file_content), on_bad_lines="skip")
         if df is not None:
             object_keys = df.columns
             partition_keys = list()
@@ -444,7 +453,6 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             numeric_columns = self.get_filtered_columns(columns_set, numeric_columns)
             filtered_dimensions = self.get_filtered_columns(columns_set, dimensions)
             total_record_count = df.shape[0]
-            execution_time = int(datetime.now().timestamp())
             if timestamp_cols and not (
                 not filtered_dimensions and len(dimensions) >= 1
             ):
@@ -461,7 +469,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                 temp_df = df[numeric_columns].apply(pd.to_numeric, errors="coerce")
                 filtered_numeric_columns = []
                 for col in numeric_columns:
-                    if temp_df[col].isna().any():
+                    if temp_df[col].isna().all():
                         logging.warning(
                             f"Column '{col}' cannot be converted to numeric type."
                         )
@@ -543,3 +551,5 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                 f"primary_time|{primary_timestamp_column}",
                 filtered_dimensions,
             )
+        else:
+            return (None, execution_time, None, None)

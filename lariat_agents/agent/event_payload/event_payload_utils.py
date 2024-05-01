@@ -2,11 +2,14 @@ from lariat_agents.agent.event_payload.event_payload_types import (
     EventPayload,
     EventType,
     PayloadSource,
+    CompressionType,
 )
 from typing import Dict, List
 from urllib.parse import unquote_plus
 import json
 from lariat_python_common.string.utils import match_lariat_file_partition_pattern
+import magic
+
 
 DEFAULT_PARTITION_SEPARATOR = "="
 
@@ -74,6 +77,18 @@ def process_event_payload(
         return process_s3_trigger_event(event_obj, payload_source)
 
 
+def get_compression_from_magic_type(compression_magic_type):
+    if "gzip" in compression_magic_type:
+        return CompressionType.GZIP
+    elif "gzip2" in compression_magic_type:
+        return CompressionType.BZIP2
+    elif "snappy" in compression_magic_type:
+        # TODO: This will likely not work - need to handle snappy & zlib separately
+        return CompressionType.SNAPPY
+    else:
+        return CompressionType.NONE
+
+
 def collect_payload_from_s3(agent_config, bucket_name, object_key, s3_handler):
     if bucket_name in agent_config["buckets"]:
         bucket_configs = agent_config["buckets"][bucket_name]
@@ -98,9 +113,15 @@ def collect_payload_from_s3(agent_config, bucket_name, object_key, s3_handler):
                     file_content = response["Body"].read()
                     file_type = bucket_config.get("file_type")
                     config_name = bucket_config.get("name")
+                    mime = magic.Magic(mime=True)
+                    compression_magic_type = mime.from_buffer(file_content)
+                    compression = get_compression_from_magic_type(
+                        compression_magic_type
+                    )
                     return (
                         file_type,
                         file_content,
+                        compression,
                         config_name,
                         partition_fields_in_data,
                     )

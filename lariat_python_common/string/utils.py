@@ -74,7 +74,7 @@ def match_lariat_file_partition_pattern(
                 varname_deque.append(None)
         elif key:
             pattern_parts.append(f"(.+?)")
-            varname_deque.append(text)
+            varname_deque.append(key)
 
     pattern_to_be_matched = "/".join(pattern_parts) + "/"
     pattern_match = re.match(pattern_to_be_matched, suffix)
