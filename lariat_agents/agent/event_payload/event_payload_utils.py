@@ -100,7 +100,7 @@ def collect_payload_from_s3(agent_config, bucket_name, object_key, s3_handler):
                     .removesuffix("/")
                 )
                 partition_separator = bucket_config.get(
-                    "partition_separator", DEFAULT_PARTITION_SEPARATOR
+                    "key_val_partition_separator", DEFAULT_PARTITION_SEPARATOR
                 )
                 partition_fields_in_data = match_lariat_file_partition_pattern(
                     suffix_key,
