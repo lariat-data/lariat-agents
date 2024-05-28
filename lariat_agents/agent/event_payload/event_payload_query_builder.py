@@ -593,7 +593,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                 merged_df = pd.merge(
                     output_data_string_agg,
                     output_data_numeric_agg,
-                    on=filtered_dimensions + timestamp_cols,
+                    on=filtered_dimensions + timestamp_cols + [TOTAL_GROUP_COUNT_COL],
                     how="inner",
                 )
             elif output_data_numeric_agg is None and output_data_string_agg is not None:
