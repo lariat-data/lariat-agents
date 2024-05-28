@@ -1,17 +1,98 @@
+import pandas as pd
+from typing import Optional
 from lariat_agents.agent.event_payload.event_payload_types import (
     EventPayload,
     EventType,
     PayloadSource,
     CompressionType,
+    SupportedPayloadFormat,
 )
 from typing import Dict, List
 from urllib.parse import unquote_plus
 import json
 from lariat_python_common.string.utils import match_lariat_file_partition_pattern
 import magic
+from lariat_agents.constants import EVENT_PAYLOAD_MAX_CONTENT_LENGTH_BYTES
+from lariat_python_common.schema.utils import (
+    get_schema_from_json,
+    get_schema_from_parquet_object,
+    get_schema_from_csv,
+    get_schema_from_df,
+)
+import pyarrow.parquet as pq
+import fsspec
 
 
 DEFAULT_PARTITION_SEPARATOR = "="
+META_PREFIX = "partition."
+OBJECT_PREFIX = "object."
+
+
+def is_content_too_large(content_length) -> bool:
+    return content_length >= EVENT_PAYLOAD_MAX_CONTENT_LENGTH_BYTES
+
+
+def get_schema_for_data(
+    file_location, file_type, partition_fields_in_data, chunksize: Optional[int] = 10000
+):
+    clean_schema = None
+    file_type = SupportedPayloadFormat(file_type)
+    if file_type == SupportedPayloadFormat.JSONL:
+        chunks = pd.read_json(file_location, lines=True, chunksize=chunksize)
+        if chunksize:
+            df = next(chunks)
+        else:
+            df = chunks
+        if df is not None:
+            final_merged_data = df.to_json(orient="records")
+            clean_schema = get_schema_from_json(
+                final_merged_data,
+                partition_fields_in_data,
+                OBJECT_PREFIX,
+                META_PREFIX,
+            )
+
+    elif file_type == SupportedPayloadFormat.JSON:
+        chunks = pd.read_json(file_location, lines=False, chunksize=chunksize)
+        if chunksize:
+            df = next(chunks)
+        else:
+            df = chunks
+        if df is not None:
+            final_merged_data = df.to_json(orient="records")
+            clean_schema = get_schema_from_json(
+                final_merged_data,
+                partition_fields_in_data,
+                OBJECT_PREFIX,
+                META_PREFIX,
+            )
+    elif file_type == SupportedPayloadFormat.CSV:
+        chunks = pd.read_csv(file_location, chunksize=chunksize, on_bad_lines="warn")
+        if chunksize:
+            df = next(chunks)
+        else:
+            df = chunks
+        if df is not None:
+            clean_schema = get_schema_from_df(
+                df,
+                partition_fields_in_data,
+                OBJECT_PREFIX,
+                META_PREFIX,
+            )
+    elif file_type == SupportedPayloadFormat.PARQUET:
+        if chunksize is None:
+            df = pd.read_parquet(file_location)
+        else:
+            with fsspec.open(file_location) as f:
+                parquet_file = pq.ParquetFile(f)
+                df = next(parquet_file.iter_batches(batch_size=chunksize)).to_pandas()
+        clean_schema = get_schema_from_df(
+            df,
+            partition_fields_in_data,
+            OBJECT_PREFIX,
+            META_PREFIX,
+        )
+    return clean_schema
 
 
 def process_sns_s3_event(
@@ -89,7 +170,9 @@ def get_compression_from_magic_type(compression_magic_type):
         return CompressionType.NONE
 
 
-def collect_payload_from_s3(agent_config, bucket_name, object_key, s3_handler):
+def collect_payload_from_s3(
+    agent_config, bucket_name, object_key, s3_handler, header_byte_length=4096
+):
     if bucket_name in agent_config["buckets"]:
         bucket_configs = agent_config["buckets"][bucket_name]
         for bucket_config in bucket_configs:
@@ -109,20 +192,45 @@ def collect_payload_from_s3(agent_config, bucket_name, object_key, s3_handler):
                 )
                 if partition_fields_in_data:
                     # Retrieve data
-                    response = s3_handler.get_object(Bucket=bucket_name, Key=object_key)
-                    file_content = response["Body"].read()
+                    overall_response = s3_handler.get_object(
+                        Bucket=bucket_name, Key=object_key
+                    )
+                    content_length = overall_response["ContentLength"]
+                    overall_response = None
+                    header_response = s3_handler.get_object(
+                        Bucket=bucket_name,
+                        Key=object_key,
+                        Range=f"bytes=0-{header_byte_length-1}",
+                    )
+                    header_bytes = header_response["Body"].read(header_byte_length)
                     file_type = bucket_config.get("file_type")
                     config_name = bucket_config.get("name")
                     mime = magic.Magic(mime=True)
-                    compression_magic_type = mime.from_buffer(file_content)
+                    compression_magic_type = mime.from_buffer(header_bytes)
                     compression = get_compression_from_magic_type(
                         compression_magic_type
                     )
+                    fsspec_name = f"s3://{bucket_name}/{object_key}"
+                    if is_content_too_large(content_length):
+                        clean_schema = get_schema_for_data(
+                            fsspec_name,
+                            file_type,
+                            partition_fields_in_data,
+                        )
+                    else:
+                        clean_schema = get_schema_for_data(
+                            fsspec_name,
+                            file_type,
+                            partition_fields_in_data,
+                            chunksize=None,
+                        )
                     return (
                         file_type,
-                        file_content,
+                        fsspec_name,
                         compression,
+                        clean_schema,
                         config_name,
                         partition_fields_in_data,
+                        content_length,
                     )
-    return None, None, None, None
+    return None, None, None, None, None, None, None

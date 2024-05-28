@@ -179,14 +179,23 @@ def dtype_to_jsonschema_type(dtype):
         return "string"
 
 
-def get_schema_from_df(df):
-    return {
+def get_schema_from_df(
+    df,
+    additional_json=None,
+    existing_prefix="existing.",
+    additional_prefix="additional.",
+):
+    existing_schema = {
         "type": "object",
         "properties": {
             column: {"type": dtype_to_jsonschema_type(str(df[column].dtype))}
             for column in df.columns
         },
     }
+    updated_schema = update_schema_with_json(
+        existing_schema, additional_json, existing_prefix, additional_prefix
+    )
+    return updated_schema
 
 
 def get_schema_from_csv(

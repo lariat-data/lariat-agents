@@ -27,6 +27,7 @@ from lariat_agents.agent.event_payload.event_payload_utils import (
     EventPayload,
     PayloadSource,
     collect_payload_from_s3,
+    is_content_too_large,
 )
 from typing import List
 import logging
@@ -80,16 +81,19 @@ class EventPayloadAgent(StreamingBaseAgent):
         for record in event_info:
             file_type = None
             file_content = None
+            should_read_chunks = False
             if record.payload_source == PayloadSource.S3:
                 bucket_name = record.bucket
 
                 object_key = record.object_key
                 (
                     file_type,
-                    file_content,
+                    fsspec_name,
                     compression,
+                    clean_schema,
                     config_name,
                     partition_fields_in_data,
+                    content_length,
                 ) = collect_payload_from_s3(
                     agent_config, bucket_name, object_key, self.s3_handler
                 )
@@ -99,67 +103,21 @@ class EventPayloadAgent(StreamingBaseAgent):
                 bucket_name = None
                 object_key = None
                 compression = None
-            final_merged_data = {}
-            clean_schema = None
+                clean_schema = None
+                fsspec_name = None
+                content_length = 0
 
-            if file_type and file_content:
-                file_type = SupportedPayloadFormat(file_type)
-                if file_type == SupportedPayloadFormat.JSONL:
-                    file_content = EventPayloadAgent.decode_content(
-                        file_content, compression
-                    )
-                    jsonl_lines = file_content.splitlines()
-                    final_merged_data = {}
-                    for json_line in jsonl_lines:
-                        object_data = json.loads(json_line)
-                        final_merged_data.update(object_data)
-                    clean_schema = get_schema_from_json(
-                        final_merged_data,
-                        partition_fields_in_data,
-                        OBJECT_PREFIX,
-                        META_PREFIX,
-                    )
-                elif file_type == SupportedPayloadFormat.JSON:
-                    file_content = EventPayloadAgent.decode_content(
-                        file_content, compression
-                    )
-                    final_merged_data = json.loads(file_content)
-                    clean_schema = get_schema_from_json(
-                        final_merged_data,
-                        partition_fields_in_data,
-                        OBJECT_PREFIX,
-                        META_PREFIX,
-                    )
-                elif file_type == SupportedPayloadFormat.CSV:
-                    file_content = EventPayloadAgent.decode_content(
-                        file_content, compression
-                    )
-                    clean_schema = get_schema_from_csv(
-                        file_content,
-                        partition_fields_in_data,
-                        OBJECT_PREFIX,
-                        META_PREFIX,
-                    )
-                    final_merged_data = file_content
-                elif file_type == SupportedPayloadFormat.PARQUET:
-                    clean_schema = get_schema_from_parquet_object(
-                        file_content,
-                        partition_fields_in_data,
-                        OBJECT_PREFIX,
-                        META_PREFIX,
-                    )
-                    final_merged_data = file_content
-
-                if clean_schema:
-                    output_schema_map[config_name] = clean_schema
-                    name_data_map[config_name] = (
-                        final_merged_data,
-                        partition_fields_in_data,
-                        clean_schema,
-                        bucket_name,
-                        object_key,
-                        record.raw_event,
-                    )
+            if clean_schema:
+                output_schema_map[config_name] = clean_schema
+                name_data_map[config_name] = (
+                    fsspec_name,
+                    partition_fields_in_data,
+                    clean_schema,
+                    bucket_name,
+                    object_key,
+                    record.raw_event,
+                    content_length,
+                )
             else:
                 logging.info(
                     f"Object Not Associated with Config found: {bucket_name} {object_key}"
@@ -198,12 +156,13 @@ class EventPayloadAgent(StreamingBaseAgent):
                             timestamp_mappings = prefix_item.get("timestamp", {})
 
                         (
-                            file_content,
+                            fsspec_name,
                             partition_fields_in_data,
                             clean_schema,
                             bucket_name,
                             object_key,
                             raw_event,
+                            content_length,
                         ) = name_data_map[dataset_name]
                         source_id = self.yaml_config["source_id"]
                         (
@@ -212,7 +171,7 @@ class EventPayloadAgent(StreamingBaseAgent):
                             primary_time_column,
                             filtered_dimensions,
                         ) = self.query_builder.run(
-                            file_content,
+                            fsspec_name,
                             partition_fields_in_data,
                             clean_schema,
                             SupportedPayloadFormat(prefix_item.get("file_type")),
@@ -223,6 +182,7 @@ class EventPayloadAgent(StreamingBaseAgent):
                             source_id,
                             dataset_name,
                             (bucket_name, object_key),
+                            content_length,
                         )
                         if output_df is not None:
                             min_primary_time = (
@@ -245,6 +205,7 @@ class EventPayloadAgent(StreamingBaseAgent):
                                 "primary_time_column": primary_time_column,
                                 "lariat_dataset_name": dataset_name,
                             }
+
                             if filtered_dimensions and PERSIST_UNIQUE_DIMENSION_VALUES:
                                 unique_dimension_values = {
                                     dim: output_df[f"dim|{dim}"]
@@ -275,7 +236,6 @@ class EventPayloadAgent(StreamingBaseAgent):
                             self.write_data(
                                 output_df, source_file_path=source_file_path
                             )
-
                         else:
                             event_dict = {
                                 "input_event": raw_event,
@@ -289,6 +249,7 @@ class EventPayloadAgent(StreamingBaseAgent):
                             logging.warning(
                                 f"Data could not be written for {bucket_name} {object_key} "
                             )
+
         return events
 
     def map_action_to_function(self, action, event_dict=None):
@@ -307,6 +268,7 @@ class EventPayloadAgent(StreamingBaseAgent):
             )
             name_data_map = self.schema_retrieval(event_payload_list)
             events_list = self.execute_stream_metrics(name_data_map, event_dict)
+
             if events_list:
                 payload = {"events": events_list}
                 params = {"sourceId": self.yaml_config["source_id"]}
@@ -315,6 +277,7 @@ class EventPayloadAgent(StreamingBaseAgent):
                     payload=payload,
                     params=params,
                 )
+
         else:
             logging.error("Failed to authenticate credentials")
             raise PermissionError("Couldn't authenticate Api & Application keypair")
