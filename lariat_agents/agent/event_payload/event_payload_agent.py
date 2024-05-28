@@ -268,7 +268,6 @@ class EventPayloadAgent(StreamingBaseAgent):
             )
             name_data_map = self.schema_retrieval(event_payload_list)
             events_list = self.execute_stream_metrics(name_data_map, event_dict)
-
             if events_list:
                 payload = {"events": events_list}
                 params = {"sourceId": self.yaml_config["source_id"]}

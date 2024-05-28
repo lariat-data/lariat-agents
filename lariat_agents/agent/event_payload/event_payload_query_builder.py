@@ -17,13 +17,14 @@ import logging
 import re
 from lariat_python_common.sql.fields_uniquifier import DelimiterSeparatedListUniquifier
 from shapely import wkb
-
+from lariat_agents.constants import STREAMING_CHUNKSIZE
 
 CATEGORICAL_TYPE = "categorical"
 NUMERICAL_TYPE = "numeric"
 TIME_MAX_PREFIX = "max_"
 TIME_MIN_PREFIX = "min_"
 PREFIX_FOR_PRIMARY = TIME_MAX_PREFIX
+TOTAL_GROUP_COUNT_COL = "total_group_count"
 
 META_PREFIX = "partition."
 OBJECT_PREFIX = "object."
@@ -297,6 +298,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         aggregations=None,
     ):
         agg_dict = {}
+        group_counts = None
         if not columns or not timestamp_cols:
             return None
         for agg in aggregations:
@@ -319,6 +321,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
 
         if dimensions:
             grouped = df.groupby(dimensions, dropna=False)
+            group_counts = grouped.size().reset_index(name=TOTAL_GROUP_COUNT_COL)
             grouped = grouped.agg(agg_dict).reset_index()
         else:
             # If ungrouped - still mimic the format that comes from running agg on grouped dataframe
@@ -355,6 +358,8 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             else col[0]
             for col in grouped.columns
         ]
+        if dimensions and group_counts is not None:
+            grouped = pd.merge(grouped, group_counts, on=dimensions)
         return grouped
 
     @staticmethod
@@ -591,7 +596,6 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                     on=filtered_dimensions + timestamp_cols,
                     how="inner",
                 )
-
             elif output_data_numeric_agg is None and output_data_string_agg is not None:
                 merged_df = output_data_string_agg
             elif output_data_numeric_agg is not None and output_data_string_agg is None:
@@ -600,10 +604,10 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                 merged_df = None
         else:
             merged_df = None
-
-        merged_df[dimensions] = merged_df[dimensions].apply(
-            lambda x: x.str.strip().replace("", "<empty>").fillna("<empty>")
-        )
+        if merged_df is not None and filtered_dimensions:
+            merged_df[dimensions] = merged_df[dimensions].apply(
+                lambda x: x.str.strip().replace("", "<empty>").fillna("<empty>")
+            )
 
         return (
             merged_df,
@@ -654,7 +658,9 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         columns_to_add_in = []
         for col in merged_df.columns:
             if col not in dimensions and col not in timestamp_cols:
-                if (
+                if col.startswith(TOTAL_GROUP_COUNT_COL):
+                    agg_dict[col] = "sum"
+                elif (
                     col.startswith("count|")
                     or col.startswith("sum|")
                     or col.startswith("null_count|")
@@ -698,7 +704,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         location_info,
         execution_time,
     ):
-        chunksize = 200000
+        chunksize = STREAMING_CHUNKSIZE
         pq_file_handler = None
         chunks = None
         if file_type == SupportedPayloadFormat.JSONL:
@@ -750,7 +756,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                 total_record_count += chunk_record_count
 
                 if chunked_df is not None:
-                    chunked_df = chunked_df.where(pd.notnull(chunked_df), None)
+                    # chunked_df = chunked_df.where(pd.notnull(chunked_df), None)
                     chunk_results.append(chunked_df)
             if pq_file_handler is not None:
                 pq_file_handler.close()
