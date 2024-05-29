@@ -26,7 +26,7 @@ class StreamingBaseQueryBuilder(ABC):
     @abstractmethod
     def run(
         self,
-        file_content,
+        fsspec_name,
         partition_fields_in_data,
         clean_schema,
         file_type,
@@ -37,14 +37,12 @@ class StreamingBaseQueryBuilder(ABC):
         source_id,
         dataset_name,
         location_info,
+        content_length,
     ):
         """
-        Logic to execute the query against the data source (e.g. execute the actual athena query, snowflake query or
-        read query a parquet file)
-        :param location_info:
-        :param dataset_name:
-        :param source_id:
-        :param file_content:
+        Logic to execute the query against the data source (e.g. execute the actual kafka query or csv read or
+        parquet file read from s3)
+        :param fsspec_name:
         :param partition_fields_in_data:
         :param clean_schema:
         :param file_type:
@@ -52,6 +50,10 @@ class StreamingBaseQueryBuilder(ABC):
         :param numeric_columns:
         :param timestamp_mappings:
         :param dimensions:
+        :param source_id:
+        :param dataset_name:
+        :param location_info:
+        :param content_length:
         :return:
         """
         pass
