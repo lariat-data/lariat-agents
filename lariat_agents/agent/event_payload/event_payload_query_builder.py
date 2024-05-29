@@ -1,6 +1,8 @@
 from typing import List, Dict
 
 import pandas as pd
+import geopandas as gpd
+
 import fsspec
 import pyarrow.parquet as pq
 import pytz
@@ -18,6 +20,8 @@ import re
 from lariat_python_common.sql.fields_uniquifier import DelimiterSeparatedListUniquifier
 from shapely import wkb
 from lariat_agents.constants import STREAMING_CHUNKSIZE
+import pycountry
+
 
 CATEGORICAL_TYPE = "categorical"
 NUMERICAL_TYPE = "numeric"
@@ -29,6 +33,11 @@ TOTAL_GROUP_COUNT_COL = "total_group_count"
 META_PREFIX = "partition."
 OBJECT_PREFIX = "object."
 RESERVED_DIMENSIONS = ["scalar", "object", "list", "wkb"]
+
+# Geo constants
+RESERVED_GEO_FUNCTION_TYPES = {"type", "country", "state"}
+DEFAULT_GEO_FUNCTION_TYPES = {"type", "country", "state"}
+DEFAULT_EPSG = "4326"
 
 
 class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
@@ -42,6 +51,28 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         self.name_data_map = name_data_map
         self.raw_dataset_names = raw_dataset_names
         super().__init__(query_builder_type=query_builder_type, sketch_mode=sketch_mode)
+
+    @staticmethod
+    def get_geolocation(gdf, mode):
+        if mode == "country":
+            countries = gpd.read_file("shapefiles/ne_110m_admin_0_countries.shp")
+            gdf.to_crs(crs=countries.crs, inplace=True)
+            gdf = gdf.sjoin(
+                countries[["ADMIN", "geometry"]], how="left", predicate="within"
+            ).fillna("<empty>")
+            gdf["ADMIN"] = gdf["ADMIN"].map(
+                lambda x: pycountry.countries.get(name=x).alpha_3
+                if pycountry.countries.get(name=x)
+                else x
+            )
+            return gdf["ADMIN"]
+        elif mode == "state":
+            states = gpd.read_file("shapefiles/ne_110m_admin_1_states_provinces.shp")
+            gdf.to_crs(crs=states.crs, inplace=True)
+            gdf = gdf.sjoin(
+                states[["name", "geometry"]], how="left", predicate="within"
+            ).fillna("<empty>")
+            return gdf["name"]
 
     @staticmethod
     def format_row(row, columns_and_separators):
@@ -479,9 +510,9 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                 new_dimensions.append(dim)
         if "object" in dimensions:
             for dim in dimensions["object"]:
-                sin, gim = dim.split(".")
-                df[dim] = df[sin].apply(
-                    lambda x: x.get(gim, "") if isinstance(x, dict) else ""
+                parent, child = dim.split(".")
+                df[dim] = df[parent].apply(
+                    lambda x: x.get(child, "") if isinstance(x, dict) else ""
                 )
                 new_dimensions.append(dim)
         if "list" in dimensions:
@@ -489,9 +520,9 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                 for name in dim:
                     idx = dim[name]["index"]
                     col = dim[name]["col"]
-                    for sin in col:
-                        df[name] = df[sin].apply(
-                            lambda x: x[idx].get(col.get(sin), "")
+                    for key_name in col:
+                        df[name] = df[key_name].apply(
+                            lambda x: x[idx].get(col.get(key_name), "")
                             if isinstance(x[idx], dict)
                             else ""
                         )
@@ -499,8 +530,59 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
 
         if "wkb" in dimensions:
             for dim in dimensions["wkb"]:
-                df[dim] = df[dim].apply(lambda x: wkb.loads(x).geom_type)
-                new_dimensions.append(dim)
+                geom_column_name = dim
+                geo_function_types = []
+                epsg_value = DEFAULT_EPSG
+                if type(dim) == dict:
+                    for key, value in dim.items():
+                        geom_column_name = key
+                        for item in value:
+                            if type(item) == dict:
+                                epsg_value = item.get("epsg", DEFAULT_EPSG)
+                            else:
+                                geo_function_types.append(item)
+
+                if geo_function_types:
+                    geo_function_types = list(
+                        set(geo_function_types).intersection(
+                            RESERVED_GEO_FUNCTION_TYPES
+                        )
+                    )
+
+                if not geo_function_types:
+                    geo_function_types = DEFAULT_GEO_FUNCTION_TYPES
+
+                parsed_geom_name = f"{geom_column_name}_parsed_geom"
+                geom_type_name = f"{geom_column_name}_geo_type"
+                geom_state_name = f"{geom_column_name}_geo_state"
+                geom_country_name = f"{geom_column_name}_geo_country"
+
+                df[parsed_geom_name] = df[geom_column_name].apply(
+                    lambda x: wkb.loads(x)
+                )
+
+                if any(x in ["state", "country"] for x in geo_function_types):
+                    gdf = gpd.GeoDataFrame(df, geometry=parsed_geom_name)
+                    gdf["centroid"] = gdf.geometry.centroid
+                    gdf.set_crs(epsg=epsg_value, inplace=True)
+                else:
+                    gdf = None
+                if "type" in geo_function_types:
+                    if gdf is not None:
+                        df[geom_type_name] = gdf.geom_type
+                    else:
+                        df[geom_type_name] = df[parsed_geom_name].apply(
+                            lambda x: x.geom_type
+                        )
+                if "state" in geo_function_types:
+                    df[geom_state_name] = EventPayloadQueryBuilder.get_geolocation(
+                        gdf, "state"
+                    )
+                if "country" in geo_function_types:
+                    df[geom_country_name] = EventPayloadQueryBuilder.get_geolocation(
+                        gdf, "country"
+                    )
+                new_dimensions.append(geom_type_name)
 
         return df, new_dimensions
 
@@ -758,6 +840,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                 if chunked_df is not None:
                     # chunked_df = chunked_df.where(pd.notnull(chunked_df), None)
                     chunk_results.append(chunked_df)
+                break
             if pq_file_handler is not None:
                 pq_file_handler.close()
             if chunk_results:

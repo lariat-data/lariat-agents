@@ -62,18 +62,6 @@ class EventPayloadAgent(StreamingBaseAgent):
             ),
         )
 
-    @staticmethod
-    def decode_content(file_content, compression):
-        if compression == CompressionType.NONE:
-            file_content = file_content.decode("utf-8")
-        elif compression == CompressionType.GZIP:
-            file_content = gzip.decompress(file_content).decode("utf-8")
-        elif compression == CompressionType.BZIP2:
-            file_content = bz2.decompress(file_content).decode("utf-8")
-        elif compression == CompressionType.SNAPPY:
-            file_content = snappy.uncompress(file_content).decode("utf-8")
-        return file_content
-
     def schema_retrieval(self, event_info: List[EventPayload] = None):
         output_schema_map = {}
         name_data_map = {}

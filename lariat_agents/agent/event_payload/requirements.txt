@@ -56,3 +56,5 @@ pydantic_core>=2.10.1
 python-magic>=0.4.27
 python-snappy>=0.7.1
 shapely>=2.0.4
+pycountry
+geopandas==0.14.4
