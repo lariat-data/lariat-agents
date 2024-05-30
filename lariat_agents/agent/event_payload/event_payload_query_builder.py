@@ -841,7 +841,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                 if chunked_df is not None:
                     # chunked_df = chunked_df.where(pd.notnull(chunked_df), None)
                     chunk_results.append(chunked_df)
-                break
+
             if pq_file_handler is not None:
                 pq_file_handler.close()
             if chunk_results:
