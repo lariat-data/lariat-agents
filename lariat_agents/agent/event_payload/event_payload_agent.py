@@ -67,9 +67,6 @@ class EventPayloadAgent(StreamingBaseAgent):
         name_data_map = {}
         agent_config = self.yaml_config
         for record in event_info:
-            file_type = None
-            file_content = None
-            should_read_chunks = False
             if record.payload_source == PayloadSource.S3:
                 bucket_name = record.bucket
 
@@ -90,7 +87,6 @@ class EventPayloadAgent(StreamingBaseAgent):
                 partition_fields_in_data = None
                 bucket_name = None
                 object_key = None
-                compression = None
                 clean_schema = None
                 fsspec_name = None
                 content_length = 0
