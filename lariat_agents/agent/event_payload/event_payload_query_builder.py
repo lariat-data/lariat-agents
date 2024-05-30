@@ -53,6 +53,18 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         super().__init__(query_builder_type=query_builder_type, sketch_mode=sketch_mode)
 
     @staticmethod
+    def map_country_name_to_alpha3(country_name):
+        country = pycountry.countries.get(official_name=country_name)
+        if country:
+            return country.alpha_3
+        else:
+            country = pycountry.countries.get(name=country_name)
+            if country:
+                return country.alpha_3
+            else:
+                return country_name
+
+    @staticmethod
     def get_geolocation(gdf, mode):
         if mode == "country":
             countries = gpd.read_file("shapefiles/ne_110m_admin_0_countries.shp")
@@ -60,11 +72,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             gdf = gdf.sjoin(
                 countries[["ADMIN", "geometry"]], how="left", predicate="within"
             ).fillna("<empty>")
-            gdf["ADMIN"] = gdf["ADMIN"].map(
-                lambda x: pycountry.countries.get(name=x).alpha_3
-                if pycountry.countries.get(name=x)
-                else x
-            )
+            gdf["ADMIN"] = gdf["ADMIN"].map(EventPayloadQueryBuilder.map_country_name_to_alpha3)
             return gdf["ADMIN"]
         elif mode == "state":
             states = gpd.read_file("shapefiles/ne_110m_admin_1_states_provinces.shp")
@@ -816,6 +824,8 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         chunk_results = []
 
         if chunks is not None:
+            import time
+            start_time = time.time()
             for chunk in chunks:
                 if file_type == SupportedPayloadFormat.PARQUET:
                     chunk = chunk.to_pandas()
@@ -837,6 +847,8 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                     dataset_name,
                 )
                 total_record_count += chunk_record_count
+                end_time = time.time()
+                start_time = end_time
 
                 if chunked_df is not None:
                     # chunked_df = chunked_df.where(pd.notnull(chunked_df), None)
