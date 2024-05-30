@@ -568,6 +568,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                 else:
                     gdf = None
                 if "type" in geo_function_types:
+                    new_dimensions.append(geom_type_name)
                     if gdf is not None:
                         df[geom_type_name] = gdf.geom_type
                     else:
@@ -578,12 +579,12 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                     df[geom_state_name] = EventPayloadQueryBuilder.get_geolocation(
                         gdf, "state"
                     )
+                    new_dimensions.append(geom_state_name)
                 if "country" in geo_function_types:
                     df[geom_country_name] = EventPayloadQueryBuilder.get_geolocation(
                         gdf, "country"
                     )
-                new_dimensions.append(geom_type_name)
-
+                    new_dimensions.append(geom_country_name)
         return df, new_dimensions
 
     def handle_calculation(

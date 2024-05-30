@@ -18,6 +18,7 @@ RUN pip3 install --trusted-host pypi.python.org -r requirements.txt --target "${
 # Copy function code
 COPY lariat_agents/agent/event_payload ${LAMBDA_TASK_ROOT}/lariat_agents/agent/event_payload
 COPY lariat_agents/base ${LAMBDA_TASK_ROOT}/lariat_agents/base
+COPY lariat_agents/agent/event_payload/shapefiles ${LAMBDA_TASK_ROOT}/shapefiles
 
 COPY lariat_agents/sink ${LAMBDA_TASK_ROOT}/lariat_agents/sink
 COPY lariat_agents/constants.py ${LAMBDA_TASK_ROOT}/lariat_agents/
