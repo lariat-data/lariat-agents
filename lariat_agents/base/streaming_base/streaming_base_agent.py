@@ -5,6 +5,7 @@ from lariat_agents.constants import (
     CLOUD_TYPE_AZURE,
     CLOUD_TYPE_AWS,
     CLOUD_TYPE_NONE,
+    CLOUD_TYPE_GCP,
     CLOUD_AGENT_CONFIG_PATH,
     AZURE_STORAGE_CONFIG_CONTAINER,
     AZURE_STORAGE_CONFIG_CONNECTION_STRING,
@@ -99,6 +100,8 @@ class StreamingBaseAgent(ABC):
                 AZURE_STORAGE_CONFIG_CONTAINER,
                 AZURE_STORAGE_CONFIG_CONNECTION_STRING,
             )
+        elif self._cloud == CLOUD_TYPE_GCP:
+            self._cloud_agent_config_path = CLOUD_AGENT_CONFIG_PATH
         elif self._cloud == CLOUD_TYPE_NONE:
             self._cloud_agent_config_path = CLOUD_AGENT_CONFIG_PATH
         self.yaml_config = self.get_yaml_config()

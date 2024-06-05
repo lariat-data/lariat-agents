@@ -58,3 +58,5 @@ python-snappy>=0.7.1
 shapely>=2.0.4
 pycountry
 geopandas==0.14.4
+google-cloud-storage==1.19.1
+fastavro==1.9.4

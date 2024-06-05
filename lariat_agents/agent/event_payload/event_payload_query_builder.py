@@ -21,6 +21,7 @@ from lariat_python_common.sql.fields_uniquifier import DelimiterSeparatedListUni
 from shapely import wkb
 from lariat_agents.constants import STREAMING_CHUNKSIZE
 import pycountry
+from lariat_python_common.pandas.utils import get_df_iterator_from_avro
 
 
 CATEGORICAL_TYPE = "categorical"
@@ -807,7 +808,9 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         elif file_type == SupportedPayloadFormat.CSV:
             chunks = pd.read_csv(fsspec_name, on_bad_lines="skip", chunksize=chunksize)
             logging.info(f"Chunked Data into {chunksize} chunks")
-
+        elif file_type == SupportedPayloadFormat.AVRO:
+            chunks = get_df_iterator_from_avro(fsspec_name, chunksize)
+            logging.info(f"Chunked Data into {chunksize} chunks")
         merged_df = None
         primary_timestamp_column = None
         timestamp_cols = None
@@ -892,6 +895,8 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             df = pd.read_parquet(fsspec_name)
         elif file_type == SupportedPayloadFormat.CSV:
             df = pd.read_csv(fsspec_name, on_bad_lines="skip")
+        elif file_type == SupportedPayloadFormat.AVRO:
+            df = next(get_df_iterator_from_avro(fsspec_name), None)
         if df is not None:
             (
                 merged_df,

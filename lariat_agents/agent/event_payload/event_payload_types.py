@@ -6,12 +6,14 @@ from enum import Enum
 class EventType(Enum):
     SNS_S3_TRIGGER = "sns_s3_trigger"
     S3_TRIGGER = "s3_trigger"
+    GCS_TRIGGER = "gcs_trigger"
     LAMBDA_DESTINATION_S3_TRIGGER = "lambda_destination_s3_trigger"
     LAMBDA_DESTINATION_SNS_S3_TRIGGER = "lambda_destination_sns_s3_trigger"
 
 
 class PayloadSource(Enum):
     S3 = "s3"
+    GCS = "gcs"
 
 
 class SupportedPayloadFormat(Enum):
@@ -19,6 +21,7 @@ class SupportedPayloadFormat(Enum):
     JSON = "json"
     PARQUET = "parquet"
     CSV = "csv"
+    AVRO = "avro"
 
 
 class EventPayload(BaseModel):

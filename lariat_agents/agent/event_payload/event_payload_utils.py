@@ -15,12 +15,18 @@ import magic
 from lariat_agents.constants import EVENT_PAYLOAD_MAX_CONTENT_LENGTH_BYTES
 from lariat_python_common.schema.utils import (
     get_schema_from_json,
-    get_schema_from_parquet_object,
-    get_schema_from_csv,
     get_schema_from_df,
 )
+from lariat_python_common.pandas.utils import get_df_iterator_from_avro
+
 import pyarrow.parquet as pq
 import fsspec
+from lariat_agents.constants import (
+    CLOUD_TYPE_AWS,
+    CLOUD_TYPE_NONE,
+    CLOUD_TYPE_GCP,
+)
+import logging
 
 
 DEFAULT_PARTITION_SEPARATOR = "="
@@ -40,7 +46,7 @@ def get_schema_for_data(
     if file_type == SupportedPayloadFormat.JSONL:
         chunks = pd.read_json(file_location, lines=True, chunksize=chunksize)
         if chunksize:
-            df = next(chunks)
+            df = next(chunks, None)
         else:
             df = chunks
         if df is not None:
@@ -55,7 +61,7 @@ def get_schema_for_data(
     elif file_type == SupportedPayloadFormat.JSON:
         chunks = pd.read_json(file_location, lines=False, chunksize=chunksize)
         if chunksize:
-            df = next(chunks)
+            df = next(chunks, None)
         else:
             df = chunks
         if df is not None:
@@ -69,7 +75,7 @@ def get_schema_for_data(
     elif file_type == SupportedPayloadFormat.CSV:
         chunks = pd.read_csv(file_location, chunksize=chunksize, on_bad_lines="warn")
         if chunksize:
-            df = next(chunks)
+            df = next(chunks, None)
         else:
             df = chunks
         if df is not None:
@@ -85,7 +91,17 @@ def get_schema_for_data(
         else:
             with fsspec.open(file_location) as f:
                 parquet_file = pq.ParquetFile(f)
-                df = next(parquet_file.iter_batches(batch_size=chunksize)).to_pandas()
+                df = next(
+                    parquet_file.iter_batches(batch_size=chunksize), None
+                ).to_pandas()
+        clean_schema = get_schema_from_df(
+            df,
+            partition_fields_in_data,
+            OBJECT_PREFIX,
+            META_PREFIX,
+        )
+    elif file_type == SupportedPayloadFormat.AVRO:
+        df = next(get_df_iterator_from_avro(file_location, chunksize), None)
         clean_schema = get_schema_from_df(
             df,
             partition_fields_in_data,
@@ -139,23 +155,47 @@ def process_s3_trigger_event(
     return event_payload_list
 
 
-def process_event_payload(
+def process_gcs_object_event(
     event_obj: Dict, payload_source: PayloadSource
 ) -> List[EventPayload]:
-    if "requestPayload" in event_obj:
-        # Handles the case when using a lambda definition wraps the event in requestPayload
-        event_obj = event_obj["requestPayload"]
+    input_bucket_name = event_obj.get("bucket")
+    object_key = event_obj.get("name")
+    if not input_bucket_name or not object_key:
+        logging.error("Missing bucket and object")
+    event_payload_list = [
+        EventPayload(
+            event_source=EventType.GCS_TRIGGER.value,
+            bucket=input_bucket_name,
+            object_key=object_key,
+            payload_source=payload_source,
+            raw_event=event_obj,
+        )
+    ]
+    return event_payload_list
 
-    if "Records" in event_obj and "s3" in event_obj["Records"][0]:
-        event_type = EventType.S3_TRIGGER
-    elif "Records" in event_obj and "Sns" in event_obj["Records"][0]:
-        event_type = EventType.SNS_S3_TRIGGER
-    else:
-        raise ValueError(f"Unsupported event object passed i: {event_obj}")
-    if event_type == EventType.SNS_S3_TRIGGER:
-        return process_sns_s3_event(event_obj, payload_source)
-    elif event_type == EventType.S3_TRIGGER:
-        return process_s3_trigger_event(event_obj, payload_source)
+
+def process_event_payload(
+    event_obj: Dict, payload_source: PayloadSource, cloud_mode: str
+) -> List[EventPayload]:
+    if cloud_mode == CLOUD_TYPE_NONE.value:
+        cloud_mode = CLOUD_TYPE_AWS.value
+    if cloud_mode == CLOUD_TYPE_AWS.value:
+        if "requestPayload" in event_obj:
+            # Handles the case when using a lambda definition wraps the event in requestPayload
+            event_obj = event_obj["requestPayload"]
+
+        if "Records" in event_obj and "s3" in event_obj["Records"][0]:
+            event_type = EventType.S3_TRIGGER
+        elif "Records" in event_obj and "Sns" in event_obj["Records"][0]:
+            event_type = EventType.SNS_S3_TRIGGER
+        else:
+            raise ValueError(f"Unsupported event object passed i: {event_obj}")
+        if event_type == EventType.SNS_S3_TRIGGER:
+            return process_sns_s3_event(event_obj, payload_source)
+        elif event_type == EventType.S3_TRIGGER:
+            return process_s3_trigger_event(event_obj, payload_source)
+    elif cloud_mode == CLOUD_TYPE_GCP:
+        return process_gcs_object_event(event_obj, payload_source)
 
 
 def get_compression_from_magic_type(compression_magic_type):
@@ -211,6 +251,67 @@ def collect_payload_from_s3(
                         compression_magic_type
                     )
                     fsspec_name = f"s3://{bucket_name}/{object_key}"
+                    if is_content_too_large(content_length):
+                        clean_schema = get_schema_for_data(
+                            fsspec_name,
+                            file_type,
+                            partition_fields_in_data,
+                        )
+                    else:
+                        clean_schema = get_schema_for_data(
+                            fsspec_name,
+                            file_type,
+                            partition_fields_in_data,
+                            chunksize=None,
+                        )
+                    return (
+                        file_type,
+                        fsspec_name,
+                        compression,
+                        clean_schema,
+                        config_name,
+                        partition_fields_in_data,
+                        content_length,
+                    )
+    return None, None, None, None, None, None, None
+
+
+def collect_payload_from_gcs(
+    agent_config, bucket_name, object_key, gcs_handler, header_byte_length=4096
+):
+    if bucket_name in agent_config["buckets"]:
+        bucket_configs = agent_config["buckets"][bucket_name]
+        for bucket_config in bucket_configs:
+            if object_key.startswith(bucket_config.get("prefix")):  # Matches prefix
+                suffix_key = (
+                    object_key[len(bucket_config.get("prefix")) :]
+                    .removeprefix("/")
+                    .removesuffix("/")
+                )
+                partition_separator = bucket_config.get(
+                    "key_val_partition_separator", DEFAULT_PARTITION_SEPARATOR
+                )
+                partition_fields_in_data = match_lariat_file_partition_pattern(
+                    suffix_key,
+                    bucket_config.get("suffix_template"),
+                    partition_separator,
+                )
+                if partition_fields_in_data:
+                    # Retrieve data
+                    gcs_bucket = gcs_handler.Bucket(bucket_name)
+                    blob = gcs_bucket.get_blob(object_key)
+                    content_length = blob.size
+                    header_bytes = blob.download_as_bytes(
+                        start=0, end=header_byte_length - 1
+                    )
+                    file_type = bucket_config.get("file_type")
+                    config_name = bucket_config.get("name")
+                    mime = magic.Magic(mime=True)
+                    compression_magic_type = mime.from_buffer(header_bytes)
+                    compression = get_compression_from_magic_type(
+                        compression_magic_type
+                    )
+                    fsspec_name = f"gcs://{bucket_name}/{object_key}"
                     if is_content_too_large(content_length):
                         clean_schema = get_schema_for_data(
                             fsspec_name,

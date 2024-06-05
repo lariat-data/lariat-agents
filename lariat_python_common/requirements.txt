@@ -4,3 +4,4 @@ sqlalchemy
 boto3-type-annotations==0.3.1
 redis==4.5.5
 duckdb
+fastavro

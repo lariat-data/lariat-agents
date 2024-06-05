@@ -1,0 +1,24 @@
+FROM python:3.10-slim
+
+# Install gcc
+RUN apt -y update
+RUN apt -y install gcc
+
+RUN apt -y install libmagic-dev
+
+WORKDIR /code
+COPY ./lariat_agents/agent/event_payload/requirements.txt /code/requirements.txt
+RUN pip3 install --upgrade pip
+RUN pip3 install --trusted-host pypi.python.org -r requirements.txt
+
+# Copy function code
+COPY lariat_agents/agent/event_payload /code/lariat_agents/agent/event_payload
+COPY lariat_agents/base /code/lariat_agents/base
+COPY lariat_agents/agent/event_payload/shapefiles /code/shapefiles
+
+COPY lariat_agents/sink /code/lariat_agents/sink
+COPY lariat_agents/constants.py /code/lariat_agents/
+
+COPY ./lariat_python_common /code/lariat_python_common
+
+CMD ["uvicorn", "lariat_agents.agent.event_payload.event_payload_gcloud_executor:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "80"]
