@@ -1,10 +1,12 @@
 import pandas as pd
 from lariat_agents.constants import (
     CLOUD_TYPE_AWS,
+    CLOUD_TYPE_GCP,
     LARIAT_OUTPUT_BUCKET,
     LARIAT_SINK_AWS_ACCESS_KEY_ID,
     LARIAT_SINK_AWS_SECRET_ACCESS_KEY,
     CROSS_ACCOUNT_ROLE_BASE_ARN,
+    GCP_CROSS_ACCOUNT_ROLE_BASE_ARN,
     USER_CLOUD_ACCOUNT_ID,
     LARIAT_SINK_CREDENTIALS_REGION_NAME,
     RESULT_OUTPUT_RESULT_MAX_TS,
@@ -47,6 +49,10 @@ class LariatSink(BaseSink):
 
         This sink doesn't support tags.
         """
+        if self.source_cloud == CLOUD_TYPE_GCP:
+            role_arn_prefix = GCP_CROSS_ACCOUNT_ROLE_BASE_ARN
+        else:
+            role_arn_prefix = CROSS_ACCOUNT_ROLE_BASE_ARN
         try:
             (
                 access_key_id,
@@ -56,7 +62,7 @@ class LariatSink(BaseSink):
                 aws_access_key_id=LARIAT_SINK_AWS_ACCESS_KEY_ID,
                 aws_secret_access_key=LARIAT_SINK_AWS_SECRET_ACCESS_KEY,
                 customer_account_id=USER_CLOUD_ACCOUNT_ID,
-                role_arn_prefix=CROSS_ACCOUNT_ROLE_BASE_ARN,
+                role_arn_prefix=role_arn_prefix,
                 region_name=LARIAT_SINK_CREDENTIALS_REGION_NAME,
             )
             if source_top_level and file_path:

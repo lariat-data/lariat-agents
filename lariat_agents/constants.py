@@ -38,7 +38,7 @@ LARIAT_APPLICATION_KEY = os.getenv("LARIAT_APPLICATION_KEY")
 CROSS_ACCOUNT_ROLE_BASE_ARN = (
     "arn:aws:iam::358681817243:role/lariat-iam-terraform-cross-account-access-role"
 )
-
+GCP_CROSS_ACCOUNT_ROLE_BASE_ARN = "arn:aws:iam::358681817243:role/lariat-tcar"
 # Lariat Agent Vars
 LARIAT_BASE_URL = os.getenv("LARIAT_ENDPOINT", "http://ingest.lariatdata.com/api")
 LARIAT_INDICATOR_URL = f"{LARIAT_BASE_URL}/indicators"
@@ -62,7 +62,6 @@ ORG_ID = "org_id"
 AGENT_INTER_QUERY_GAP = 1.0  # time to wait before launching another query in seconds
 TAG_FILESYSTEM_PREFIX = "tags"
 
-
 # Indicator Payload Variables
 INDICATOR_PAYLOAD_EVALUATION_TIMES_COL = "evaluation_times"
 INDICATOR_PAYLOAD_COMPUTE_HASH_COL = "compute_hash"
@@ -81,6 +80,11 @@ INDICATOR_PAYLOAD_LAG_COL = "lag"
 INDICATOR_PAYLOAD_SKETCH_TYPE = "sketch_type"
 INDICATOR_PAYLOAD_INDICATOR_NAME_COL = "indicator_name"
 INDICATOR_PAYLOAD_INDICATOR_RAW_DATASETS_COL = "raw_dataset_names"
+
+# GCS Input Var Names
+GCS_INPUT_BUCKET_VAR_NAME = "INPUT_BUCKET"
+GCS_INPUT_OBJECT_VAR_NAME = "INPUT_FILE"
+
 
 # Result Output Variables
 RESULT_OUTPUT_RESULT_MIN_TS = "_result_min_ts"

@@ -10,9 +10,9 @@ RUN yum -y install file-devel
 # Install the function's dependencies using file requirements.txt
 # from your project folder.
 
-COPY lariat_agents/agent/event_payload/requirements.txt  .
+COPY lariat_agents/agent/event_payload/requirements_aws.txt  .
 RUN pip3 install --upgrade pip
-RUN pip3 install --trusted-host pypi.python.org -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
+RUN pip3 install --trusted-host pypi.python.org -r requirements_aws.txt --target "${LAMBDA_TASK_ROOT}"
 
 
 # Copy function code

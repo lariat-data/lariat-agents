@@ -40,6 +40,7 @@ from lariat_agents.base.streaming_base.streaming_base_query_builder import (
 from lariat_agents.sink.lariat_sink import LariatSink
 from lariat_agents.sink.datadog_sink import DatadogSink
 import sqlparse
+from google.cloud import storage
 
 
 class StreamingBaseAgent(ABC):
@@ -176,6 +177,12 @@ class StreamingBaseAgent(ABC):
         elif self._cloud == CLOUD_TYPE_NONE:
             with open(self._cloud_agent_config_path) as agent_config_file:
                 agent_config = yaml.load(agent_config_file)
+        elif self._cloud == CLOUD_TYPE_GCP:
+            gcs_handler = storage.Client()
+            bucket, object_path = self._cloud_agent_config_path.split("/", 1)
+            gcs_bucket = gcs_handler.get_bucket(bucket)
+            blob = gcs_bucket.get_blob(object_path)
+            agent_config = yaml.load(blob.download_as_string())
         else:
             raise ValueError(f"Unsupported cloud environment: {self._cloud}")
         return agent_config

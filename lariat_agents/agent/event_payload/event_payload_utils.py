@@ -177,9 +177,9 @@ def process_gcs_object_event(
 def process_event_payload(
     event_obj: Dict, payload_source: PayloadSource, cloud_mode: str
 ) -> List[EventPayload]:
-    if cloud_mode == CLOUD_TYPE_NONE.value:
-        cloud_mode = CLOUD_TYPE_AWS.value
-    if cloud_mode == CLOUD_TYPE_AWS.value:
+    if cloud_mode == CLOUD_TYPE_NONE:
+        cloud_mode = CLOUD_TYPE_AWS
+    if cloud_mode == CLOUD_TYPE_AWS:
         if "requestPayload" in event_obj:
             # Handles the case when using a lambda definition wraps the event in requestPayload
             event_obj = event_obj["requestPayload"]
@@ -298,7 +298,7 @@ def collect_payload_from_gcs(
                 )
                 if partition_fields_in_data:
                     # Retrieve data
-                    gcs_bucket = gcs_handler.Bucket(bucket_name)
+                    gcs_bucket = gcs_handler.get_bucket(bucket_name)
                     blob = gcs_bucket.get_blob(object_key)
                     content_length = blob.size
                     header_bytes = blob.download_as_bytes(
