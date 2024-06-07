@@ -1,11 +1,6 @@
 from lariat_agents.base.streaming_base.streaming_base_agent import StreamingBaseAgent
 from boto3_type_annotations import s3
-import json
-from lariat_python_common.schema.utils import (
-    get_schema_from_json,
-    get_schema_from_parquet_object,
-    get_schema_from_csv,
-)
+
 from lariat_agents.constants import (
     EVENT_PAYLOAD_OUTPUT_KEY_PREFIX,
     LARIAT_PAYLOAD_SOURCE,
@@ -14,29 +9,23 @@ from lariat_agents.constants import (
 )
 from lariat_agents.agent.event_payload.event_payload_query_builder import (
     EventPayloadQueryBuilder,
-    META_PREFIX,
-    OBJECT_PREFIX,
 )
 from datetime import datetime
 from lariat_agents.agent.event_payload.event_payload_types import (
     SupportedPayloadFormat,
-    CompressionType,
 )
 from lariat_agents.agent.event_payload.event_payload_utils import (
     process_event_payload,
     EventPayload,
     PayloadSource,
     collect_payload_from_s3,
-    is_content_too_large,
+    collect_payload_from_gcs,
 )
 from typing import List
 import logging
 from pathlib import Path
 import time
 import hashlib
-import gzip
-import bz2
-import snappy
 
 
 class EventPayloadAgent(StreamingBaseAgent):
@@ -44,11 +33,13 @@ class EventPayloadAgent(StreamingBaseAgent):
         self,
         agent_type: str,
         cloud: str,
-        s3_handler: s3.Client,
+        s3_handler: s3.Client = None,
+        gcs_handler=None,
         api_key: str = None,
         application_key: str = None,
     ):
         self.s3_handler = s3_handler
+        self.gcs_handler = gcs_handler
 
         super().__init__(
             agent_type=agent_type,
@@ -81,6 +72,21 @@ class EventPayloadAgent(StreamingBaseAgent):
                     content_length,
                 ) = collect_payload_from_s3(
                     agent_config, bucket_name, object_key, self.s3_handler
+                )
+            elif record.payload_source == PayloadSource.GCS:
+                bucket_name = record.bucket
+
+                object_key = record.object_key
+                (
+                    file_type,
+                    fsspec_name,
+                    compression,
+                    clean_schema,
+                    config_name,
+                    partition_fields_in_data,
+                    content_length,
+                ) = collect_payload_from_gcs(
+                    agent_config, bucket_name, object_key, self.gcs_handler
                 )
             else:
                 config_name = None
@@ -247,8 +253,7 @@ class EventPayloadAgent(StreamingBaseAgent):
         are_keys_valid = self.validate_api_keys()
         if are_keys_valid:
             event_payload_list = process_event_payload(
-                event_dict,
-                PayloadSource(LARIAT_PAYLOAD_SOURCE),
+                event_dict, PayloadSource(LARIAT_PAYLOAD_SOURCE), self._cloud
             )
             name_data_map = self.schema_retrieval(event_payload_list)
             events_list = self.execute_stream_metrics(name_data_map, event_dict)
