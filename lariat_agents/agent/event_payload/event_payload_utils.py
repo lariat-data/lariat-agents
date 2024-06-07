@@ -158,8 +158,8 @@ def process_s3_trigger_event(
 def process_gcs_object_event(
     event_obj: Dict, payload_source: PayloadSource
 ) -> List[EventPayload]:
-    input_bucket_name = event_obj.get("bucket")
-    object_key = event_obj.get("name")
+    input_bucket_name = event_obj.get("data").get("bucket")
+    object_key = event_obj.get("data").get("name")
     if not input_bucket_name or not object_key:
         logging.error("Missing bucket and object")
     event_payload_list = [
