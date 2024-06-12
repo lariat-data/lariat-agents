@@ -265,7 +265,6 @@ class EventPayloadAgent(StreamingBaseAgent):
                     payload=payload,
                     params=params,
                 )
-
         else:
             logging.error("Failed to authenticate credentials")
             raise PermissionError("Couldn't authenticate Api & Application keypair")
