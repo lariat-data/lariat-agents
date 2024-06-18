@@ -50,13 +50,21 @@ def get_schema_for_data(
         else:
             df = chunks
         if df is not None:
-            final_merged_data = df.to_json(orient="records")
+            clean_schema = get_schema_from_df(
+                df,
+                partition_fields_in_data,
+                OBJECT_PREFIX,
+                META_PREFIX,
+            )
+            """
+            final_merged_data = json.loads(df.to_json(orient="records"))
             clean_schema = get_schema_from_json(
                 final_merged_data,
                 partition_fields_in_data,
                 OBJECT_PREFIX,
                 META_PREFIX,
             )
+            """
 
     elif file_type == SupportedPayloadFormat.JSON:
         chunks = pd.read_json(file_location, lines=False, chunksize=chunksize)
@@ -65,6 +73,13 @@ def get_schema_for_data(
         else:
             df = chunks
         if df is not None:
+            clean_schema = get_schema_from_df(
+                df,
+                partition_fields_in_data,
+                OBJECT_PREFIX,
+                META_PREFIX,
+            )
+            """
             final_merged_data = df.to_json(orient="records")
             clean_schema = get_schema_from_json(
                 final_merged_data,
@@ -72,6 +87,7 @@ def get_schema_for_data(
                 OBJECT_PREFIX,
                 META_PREFIX,
             )
+            """
     elif file_type == SupportedPayloadFormat.CSV:
         chunks = pd.read_csv(file_location, chunksize=chunksize, on_bad_lines="warn")
         if chunksize:

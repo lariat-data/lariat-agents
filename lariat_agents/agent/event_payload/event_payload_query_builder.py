@@ -10,7 +10,7 @@ import pytz
 from lariat_agents.agent.event_payload.event_payload_types import SupportedPayloadFormat
 from lariat_agents.agent.event_payload.event_payload_utils import is_content_too_large
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from lariat_agents.base.streaming_base.streaming_base_query_builder import (
     StreamingBaseQueryBuilder,
@@ -22,7 +22,7 @@ from shapely import wkb
 from lariat_agents.constants import STREAMING_CHUNKSIZE
 import pycountry
 from lariat_python_common.pandas.utils import get_df_iterator_from_avro
-
+import numpy as np
 
 CATEGORICAL_TYPE = "categorical"
 NUMERICAL_TYPE = "numeric"
@@ -30,6 +30,7 @@ TIME_MAX_PREFIX = "max_"
 TIME_MIN_PREFIX = "min_"
 PREFIX_FOR_PRIMARY = TIME_MAX_PREFIX
 TOTAL_GROUP_COUNT_COL = "total_group_count"
+LARIAT_EXECUTION_TIME_COL = "lariat_agent_execution_time"
 
 META_PREFIX = "partition."
 OBJECT_PREFIX = "object."
@@ -204,16 +205,22 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         return filtered_list
 
     @staticmethod
-    def set_df_timestamp_vars(df, timestamp_mappings):
+    def set_df_timestamp_vars(df, timestamp_mappings, execution_time):
         timestamp_cols = []
         primary_timestamp_column = None
         first_timestamp_column = None
+        freshness_cols = []
+        df[LARIAT_EXECUTION_TIME_COL] = execution_time
+        timestamp_cols.append(LARIAT_EXECUTION_TIME_COL)
         for key in timestamp_mappings:
             column = timestamp_mappings[key]["column"]
             format_str = timestamp_mappings[key]["format"]
             timezone = timestamp_mappings[key].get("timezone", "")
             is_primary = timestamp_mappings[key].get("primary", False)
             columns_and_separators = re.findall(r"(\{[^}]+\})([^{]*)", column)
+            freshness = timestamp_mappings[key].get("freshness", False)
+            if freshness:
+                freshness_cols.append(key)
             if columns_and_separators:
                 col_list = [col[0].strip("{}") for col in columns_and_separators]
                 filter_list = EventPayloadQueryBuilder.get_filtered_columns(
@@ -317,6 +324,8 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             )
 
         if primary_timestamp_column is None:
+            primary_timestamp_column = LARIAT_EXECUTION_TIME_COL
+            """
             if first_timestamp_column is not None:
                 primary_timestamp_column = first_timestamp_column
                 logging.info(
@@ -324,7 +333,37 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                     f"first encountered timestamp column "
                     f"{primary_timestamp_column.removeprefix(PREFIX_FOR_PRIMARY)}"
                 )
-        return timestamp_cols, primary_timestamp_column
+            """
+        freshness_dimension = []
+        for col in freshness_cols:
+            if col != primary_timestamp_column:
+                df, freshness_col_name = EventPayloadQueryBuilder.calculate_freshness(df, col, primary_timestamp_column)
+                freshness_dimension.append(freshness_col_name)
+        return timestamp_cols, primary_timestamp_column, freshness_dimension
+
+    @staticmethod
+    def calculate_freshness(df, col, primary_timestamp_column):
+        if col != LARIAT_EXECUTION_TIME_COL:
+            time_diff = (df[primary_timestamp_column] - df[col].astype("int64") // 10**9) / 60
+        else:
+            time_diff = (df[primary_timestamp_column] - df[col]) / 60
+        conditions_labels = [
+            (time_diff < -60, "future: >1 hour"),
+            ((time_diff >= -60) & (time_diff < 0), "future: 0-1 hour"),
+            ((time_diff >= 0) & (time_diff <= 5), "0-5min"),
+            ((time_diff > 5) & (time_diff <= 10), "5-10min"),
+            ((time_diff > 10) & (time_diff <= 20), "10-20min"),
+            ((time_diff > 20) & (time_diff <= 30), "20-30min"),
+            ((time_diff > 30) & (time_diff <= 60), "30-60min"),
+            ((time_diff > 60) & (time_diff <= 120), "1-2h"),
+            ((time_diff > 120) & (time_diff <= 180), "2-3h"),
+            ((time_diff > 180) & (time_diff <= 1440), "3-24h"),
+            (time_diff > 1440, ">24h")
+        ]
+        conditions, labels = zip(*conditions_labels)
+        freshness_col_name = f"{col}_freshness"
+        df[freshness_col_name] = np.select(conditions, labels)
+        return df, freshness_col_name
 
     @staticmethod
     def calculate_aggregations(
@@ -353,11 +392,16 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                     agg_dict[col].append("max")
                 else:
                     agg_dict[col] = ["max"]
-            if col.startswith("min"):
+            elif col.startswith("min"):
                 if col in agg_dict:
                     agg_dict[col].append("min")
                 else:
                     agg_dict[col] = ["min"]
+            else:
+                if col in agg_dict:
+                    agg_dict[col].append("max")
+                else:
+                    agg_dict[col] = ["max"]
 
         if dimensions:
             grouped = df.groupby(dimensions, dropna=False)
@@ -606,6 +650,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         timestamp_mappings,
         source_id,
         dataset_name,
+        execution_time
     ):
         object_keys = df.columns
         partition_keys = list()
@@ -627,13 +672,15 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             numeric_columns,
         )
         columns_set = set(df.columns)
-        timestamp_cols, primary_timestamp_column = self.set_df_timestamp_vars(
-            df, timestamp_mappings
+        timestamp_cols, primary_timestamp_column, freshness_dimensions = self.set_df_timestamp_vars(
+            df, timestamp_mappings, execution_time
         )
-
         string_columns = self.get_filtered_columns(columns_set, string_columns)
         numeric_columns = self.get_filtered_columns(columns_set, numeric_columns)
         filtered_dimensions = self.get_filtered_columns(columns_set, dimensions)
+        if freshness_dimensions:
+            filtered_dimensions.extend(freshness_dimensions)
+            dimensions.extend(freshness_dimensions)
         total_record_count = df.shape[0]
 
         if timestamp_cols and not (not filtered_dimensions and len(dimensions) >= 1):
@@ -721,7 +768,6 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         location_info,
     ):
         merged_df["total_record_count"] = total_record_count
-        merged_df["lariat_agent_execution_time"] = execution_time
         if isinstance(location_info, tuple) and len(location_info) == 2:
             merged_df["bucket"] = location_info[0]
             merged_df["object"] = location_info[1]
@@ -742,6 +788,8 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             },
             inplace=True,
         )
+        merged_df["lariat_agent_execution_time"] = execution_time
+
         return merged_df
 
     @staticmethod
@@ -768,8 +816,10 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         for col in timestamp_cols:
             if col.startswith("max"):
                 agg_dict[col] = ["max"]
-            if col.startswith("min"):
+            elif col.startswith("min"):
                 agg_dict[col] = ["min"]
+            else:
+                agg_dict[col] = ["max"]
 
         grouped = merged_df.groupby(dimensions, dropna=False)
         grouped = grouped.agg(agg_dict).reset_index()
@@ -827,8 +877,6 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         chunk_results = []
 
         if chunks is not None:
-            import time
-            start_time = time.time()
             for chunk in chunks:
                 if file_type == SupportedPayloadFormat.PARQUET:
                     chunk = chunk.to_pandas()
@@ -848,10 +896,9 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                     timestamp_mappings,
                     source_id,
                     dataset_name,
+                    execution_time
                 )
                 total_record_count += chunk_record_count
-                end_time = time.time()
-                start_time = end_time
 
                 if chunked_df is not None:
                     # chunked_df = chunked_df.where(pd.notnull(chunked_df), None)
@@ -926,6 +973,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                 timestamp_mappings,
                 source_id,
                 dataset_name,
+                execution_time
             )
             if merged_df is not None:
                 merged_df = self.add_metadata_to_results(
@@ -961,7 +1009,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         location_info,
         content_length,
     ):
-        execution_time = int(datetime.now().timestamp())
+        execution_time = int(datetime.now(timezone.utc).timestamp())
         should_stream = is_content_too_large(content_length)
         if not should_stream:
             return self.run_batch(
