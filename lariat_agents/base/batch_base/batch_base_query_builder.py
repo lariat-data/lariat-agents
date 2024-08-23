@@ -62,6 +62,7 @@ class BatchBaseQueryBuilder(ABC):
         table_names: List[str],
         source_id: str,
         db_name: str = None,
+        catalog=None,
     ):
         """
         Schema Retrieval Query. Queries the correct part of information schema and retrieves the schemas along with
@@ -140,7 +141,10 @@ class BatchBaseQueryBuilder(ABC):
 
     @staticmethod
     def add_timestamp_fields(
-        timestamp_col: str, evaluation_time: int, lookback_time: int
+        timestamp_col: str,
+        evaluation_time: int,
+        lookback_time: int,
+        inspect_results: bool = True,
     ):
         """
         Constructs part of the query to return the relevant timestamp metadata fields
@@ -152,11 +156,18 @@ class BatchBaseQueryBuilder(ABC):
                     MAX(received_time) as _result_max_ts, 1654646400 as _lookback_range_end_ts,
                     1654642800 as _lookback_range_start_ts
         """
-        return (
-            f"MIN({timestamp_col}) as {RESULT_OUTPUT_RESULT_MIN_TS}, MAX({timestamp_col}) as"
-            f" {RESULT_OUTPUT_RESULT_MAX_TS}, {evaluation_time} as {RESULT_OUTPUT_LOOKBACK_RANGE_END_TS},"
-            f" {evaluation_time - lookback_time} as {RESULT_OUTPUT_LOOKBACK_RANGE_START_TS}"
-        )
+        if inspect_results:
+            return (
+                f"MIN({timestamp_col}) as {RESULT_OUTPUT_RESULT_MIN_TS}, MAX({timestamp_col}) as"
+                f" {RESULT_OUTPUT_RESULT_MAX_TS}, {evaluation_time} as {RESULT_OUTPUT_LOOKBACK_RANGE_END_TS},"
+                f" {evaluation_time - lookback_time} as {RESULT_OUTPUT_LOOKBACK_RANGE_START_TS}"
+            )
+        else:
+            return (
+                f"{evaluation_time} as {RESULT_OUTPUT_RESULT_MIN_TS}, {evaluation_time - lookback_time} as"
+                f" {RESULT_OUTPUT_RESULT_MAX_TS}, {evaluation_time} as {RESULT_OUTPUT_LOOKBACK_RANGE_END_TS},"
+                f" {evaluation_time - lookback_time} as {RESULT_OUTPUT_LOOKBACK_RANGE_START_TS}"
+            )
 
     @staticmethod
     def construct_indicator_statuses_from_meta(query, meta_dict):
@@ -182,6 +193,7 @@ class BatchBaseQueryBuilder(ABC):
         :return: indicator_list: Integer ids for all indicators part of this query.
                  evaluation_time: Integer Unix Time for Lariat evaluation time for this query
         """
+        query = query.lower()
         indicator_list = re.findall("as _indicator_(\\d+)", query)
         evaluation_time = re.findall("\\d+\s*(?=as _lookback_range_end_ts)", query)
         return (

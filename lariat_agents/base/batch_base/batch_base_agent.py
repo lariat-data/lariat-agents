@@ -1,6 +1,7 @@
 import os.path
 from abc import ABC, abstractmethod
 from typing import List, Dict
+from io import StringIO
 from lariat_agents.constants import (
     CLOUD_TYPE_AZURE,
     CLOUD_TYPE_AWS,
@@ -243,8 +244,12 @@ class BatchBaseAgent(ABC):
         }
         req = request.Request(url=endpoint, data=data, headers=headers)
         with request.urlopen(req) as url:
-            data = pd.read_json(url.read().decode()).fillna("")
-        return data
+            url_response = url.read().decode()
+            if url_response:
+                data = pd.read_json(StringIO(url_response)).fillna("")
+                return data
+            else:
+                return pd.DataFrame()
 
     def get_lariat_indicator_json(self, indicator_url):
         """
@@ -262,8 +267,12 @@ class BatchBaseAgent(ABC):
         req.add_header("X-Lariat-Api-Key", self._api_key)
         req.add_header("X-Lariat-Application-Key", self._application_key)
         with request.urlopen(req) as url:
-            data = pd.read_json(url.read().decode()).fillna("")
-        return data
+            url_response = url.read().decode()
+            if url_response:
+                data = pd.read_json(StringIO(url_response)).fillna("")
+                return data
+            else:
+                return pd.DataFrame()
 
     def execute_indicators(
         self,
@@ -271,7 +280,6 @@ class BatchBaseAgent(ABC):
         expect_results: bool,
         sketch_type_in_hash: bool = False,
         name_data_map: Dict = None,
-        raw_dataset_names: List = None,
     ):
         """
         Represents the logic to parse the indicators format that comes from the Lariat service.
@@ -364,6 +372,9 @@ class BatchBaseAgent(ABC):
             if group_fields:
                 group_fields = group_fields.split(",")
             self.create_tags_post_indicator_dispatch(df_group)
+            raw_dataset_names = []
+            if "raw_dataset_names" in first_row:
+                raw_dataset_names.extend(first_row["raw_dataset_names"])
             query = self.query_builder.build(
                 computed_dataset_query=computed_dataset_query,
                 calculation_indicator_id_pairs=calculation_indicator_id_pairs,
@@ -383,7 +394,6 @@ class BatchBaseAgent(ABC):
                 f"day={str(ingestion_time.day).zfill(2)}/hour={str(ingestion_time.hour).zfill(2)}/"
                 f"minute={str(ingestion_time.minute).zfill(2)}/"
             )
-            logging.debug(f"Running Query: {query}")
             logging.debug(f"Sending Data to: {query_output_path}")
 
             output_df, indicator_statuses = self.query_builder.run(

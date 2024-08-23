@@ -154,5 +154,4 @@ class S3TriggerAgent(BatchBaseAgent):
             indicators=indicators,
             expect_results=True,
             name_data_map=self.query_builder.name_data_map,
-            raw_dataset_names=self.query_builder.raw_dataset_names,
         )

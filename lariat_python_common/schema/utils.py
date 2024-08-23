@@ -87,13 +87,20 @@ def process_arrow_schema_field(field):
         for subfield in field.type:
             properties[subfield.name] = process_arrow_schema_field(subfield)
         return {"type": "object", "properties": properties}
-    elif isinstance(field.type, pa.ListType):
+    elif isinstance(field.type, pa.ListType) or isinstance(
+        field.type, pa.LargeListType
+    ):
         return {
             "type": "array",
             "items": process_arrow_schema_field(field.type.value_field),
         }
     else:  # Map PyArrow data types to JSON Schema data types
-        data_type = field.type.to_pandas_dtype()
+        if pa.types.is_large_string(field.type):
+            data_type = pa.string().to_pandas_dtype()
+        elif pa.types.is_large_binary(field.type):
+            data_type = pa.binary().to_pandas_dtype()
+        else:
+            data_type = field.type.to_pandas_dtype()
         json_type = {
             int: "integer",
             float: "number",

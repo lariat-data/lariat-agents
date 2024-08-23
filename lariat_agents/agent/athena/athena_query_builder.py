@@ -41,6 +41,7 @@ class AthenaQueryBuilder(BatchBaseQueryBuilder):
         table_names: List[str],
         source_id: str,
         db_name: str = None,
+        catalog=None,
     ):
         schema_output = []
         schema_query = lariat_schema_utils.get_schema_retrieval_query(

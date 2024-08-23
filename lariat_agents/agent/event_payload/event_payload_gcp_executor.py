@@ -11,7 +11,7 @@ def run_agent_gcp():
     """
     Accepts an Object Finalized Event passed in via an Environment Var.
     Decodes and Passes this along to EventPayloadAgent to compute health metrics on the object
-    and sink to chosen option (usually Lariat) 
+    and sink to chosen option (usually Lariat)
     :return:
     """
     raw_event = os.getenv(GCS_RAW_EVENT_VAR_NAME)

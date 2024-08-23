@@ -64,7 +64,11 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             if country:
                 return country.alpha_3
             else:
-                return country_name
+                country = pycountry.countries.get(common_name=country_name)
+                if country:
+                    return country.alpha_3
+                else:
+                    return country_name
 
     @staticmethod
     def get_geolocation(gdf, mode):
@@ -74,7 +78,9 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             gdf = gdf.sjoin(
                 countries[["ADMIN", "geometry"]], how="left", predicate="within"
             ).fillna("<empty>")
-            gdf["ADMIN"] = gdf["ADMIN"].map(EventPayloadQueryBuilder.map_country_name_to_alpha3)
+            gdf["ADMIN"] = gdf["ADMIN"].map(
+                EventPayloadQueryBuilder.map_country_name_to_alpha3
+            )
             return gdf["ADMIN"]
         elif mode == "state":
             states = gpd.read_file("shapefiles/ne_110m_admin_1_states_provinces.shp")
@@ -337,14 +343,18 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         freshness_dimension = []
         for col in freshness_cols:
             if col != primary_timestamp_column:
-                df, freshness_col_name = EventPayloadQueryBuilder.calculate_freshness(df, col, primary_timestamp_column)
+                df, freshness_col_name = EventPayloadQueryBuilder.calculate_freshness(
+                    df, col, primary_timestamp_column
+                )
                 freshness_dimension.append(freshness_col_name)
         return timestamp_cols, primary_timestamp_column, freshness_dimension
 
     @staticmethod
     def calculate_freshness(df, col, primary_timestamp_column):
         if col != LARIAT_EXECUTION_TIME_COL:
-            time_diff = (df[primary_timestamp_column] - df[col].astype("int64") // 10**9) / 60
+            time_diff = (
+                df[primary_timestamp_column] - df[col].astype("int64") // 10**9
+            ) / 60
         else:
             time_diff = (df[primary_timestamp_column] - df[col]) / 60
         conditions_labels = [
@@ -358,7 +368,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             ((time_diff > 60) & (time_diff <= 120), "1-2h"),
             ((time_diff > 120) & (time_diff <= 180), "2-3h"),
             ((time_diff > 180) & (time_diff <= 1440), "3-24h"),
-            (time_diff > 1440, ">24h")
+            (time_diff > 1440, ">24h"),
         ]
         conditions, labels = zip(*conditions_labels)
         freshness_col_name = f"{col}_freshness"
@@ -650,7 +660,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
         timestamp_mappings,
         source_id,
         dataset_name,
-        execution_time
+        execution_time,
     ):
         object_keys = df.columns
         partition_keys = list()
@@ -672,9 +682,11 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
             numeric_columns,
         )
         columns_set = set(df.columns)
-        timestamp_cols, primary_timestamp_column, freshness_dimensions = self.set_df_timestamp_vars(
-            df, timestamp_mappings, execution_time
-        )
+        (
+            timestamp_cols,
+            primary_timestamp_column,
+            freshness_dimensions,
+        ) = self.set_df_timestamp_vars(df, timestamp_mappings, execution_time)
         string_columns = self.get_filtered_columns(columns_set, string_columns)
         numeric_columns = self.get_filtered_columns(columns_set, numeric_columns)
         filtered_dimensions = self.get_filtered_columns(columns_set, dimensions)
@@ -896,7 +908,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                     timestamp_mappings,
                     source_id,
                     dataset_name,
-                    execution_time
+                    execution_time,
                 )
                 total_record_count += chunk_record_count
 
@@ -973,7 +985,7 @@ class EventPayloadQueryBuilder(StreamingBaseQueryBuilder):
                 timestamp_mappings,
                 source_id,
                 dataset_name,
-                execution_time
+                execution_time,
             )
             if merged_df is not None:
                 merged_df = self.add_metadata_to_results(

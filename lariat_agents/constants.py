@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from lariat_python_common.types.types import CloudTypeModes, SketchTypeModes
+from distutils.util import strtobool
 
 load_dotenv()
 
@@ -104,3 +105,9 @@ LARIAT_SINK_TYPE = "lariat"
 DATADOG_SINK_TYPE = "datadog"
 GRAFANA_SINK_TYPE = "grafana"
 SINK_TYPE = "sink"
+
+# Error Checking
+ICEBERG_STRICT_ENFORCE_PARTITIONS = strtobool(
+    os.getenv("ICEBERG_STRICT_ENFORCE_PARTITIONS", "False")
+)
+MAX_ICEBERG_FILES = 2000
