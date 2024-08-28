@@ -49,14 +49,6 @@ class IcebergAgent(BatchBaseAgent):
                     "client.region": "us-east-1"
                     """
                     catalogs[catalog] = load_catalog("glue", **{"type": "glue"})
-                    for db in agent_config[catalog]["databases"]:
-                        all_table_names = [
-                            key
-                            for item in agent_config[catalog]["databases"][db]
-                            for key in item
-                        ]
-                        for table in all_table_names:
-                            dataset_to_catalog_map[f"{catalog}.{db}.{table}"] = catalog
                 elif CatalogType(catalog) == CatalogType.POSTGRES:
                     db_config_dict = agent_config[catalog]
                     driver = "postgresql+psycopg2"
@@ -82,10 +74,32 @@ class IcebergAgent(BatchBaseAgent):
                     catalogs[catalog] = load_catalog(
                         "sql", **{"type": "sql", "uri": uri}
                     )
+                elif CatalogType(catalog) == CatalogType.HIVE:
+                    db_config_dict = agent_config[catalog]
+                    uri = db_config_dict.get("uri", None)
+                    catalogs[catalog] = load_catalog(
+                        "hive", **{"type": "hive", "uri": uri}
+                    )
+                elif CatalogType(catalog) == CatalogType.REST:
+                    db_config_dict = agent_config[catalog]
+                    uri = db_config_dict.get("uri", None)
+                    catalogs[catalog] = load_catalog(
+                        "rest", **{"type": "rest", "uri": uri}
+                    )
+                elif CatalogType(catalog) == CatalogType.DYNAMODB:
+                    catalogs[catalog] = load_catalog("dynamodb", **{"type": "dynamodb"})
                 else:
                     continue
             else:
                 logging.warning(f"Catalog Type {catalog} not supported")
+            for db in agent_config[catalog]["databases"]:
+                all_table_names = [
+                    key
+                    for item in agent_config[catalog]["databases"][db]
+                    for key in item
+                ]
+                for table in all_table_names:
+                    dataset_to_catalog_map[f"{catalog}.{db}.{table}"] = catalog
         query_builder.dataset_to_catalog_map = dataset_to_catalog_map
         query_builder.catalogs = catalogs
         self.catalogs = catalogs

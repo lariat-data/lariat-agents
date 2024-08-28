@@ -7,3 +7,4 @@ class CatalogType(Enum):
     POSTGRES = "postgres"
     SQLLITE = "sqlite"
     HIVE = "hive"
+    DYNAMODB = "dynamodb"
